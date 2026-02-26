@@ -1,0 +1,828 @@
+# 🔭 Netra Analytics — Comprehensive SaaS Product Plan
+
+> **Platform:** Web & Mobile Analytics SaaS | **Multi-Tenant** | **Open-Source Stack**
+> Based on the research report: *"Comprehensive Architectural Blueprint for a Multi-Tenant Web and Mobile Analytics SaaS"*
+
+---
+
+## Table of Contents
+
+1. [Application Overview](#1-application-overview)
+2. [Feature List: SaaS Storefront](#2-saas-storefront--public-facing-website)
+3. [Feature List: SaaS Admin Dashboard](#3-saas-admin-dashboard-super-admin)
+4. [Feature List: User Dashboard & Analytics Dashboard](#4-user-dashboard--analytics-dashboard)
+5. [Data Collection Plugins & SDKs](#5-data-collection-plugins--sdks)
+6. [Detailed Tech Stack](#6-detailed-tech-stack)
+7. [System Architecture Diagrams](#7-system-architecture-diagrams)
+
+---
+
+## 1. Application Overview
+
+**Netra Analytics** is a multi-tenant, privacy-first, no-code behavioral analytics platform that collects, processes, and visualizes user behavior data across web, mobile, and game engine platforms. The name "Netra" means *eye* in Sanskrit — symbolizing deep visibility into user behavior.
+
+### Core Pillars
+| Pillar | Description |
+|--------|-------------|
+| **Zero-Code Tracking** | DOM Autocapture + Visual Event Tagger — no developer coding required |
+| **Cross-Platform** | 9 platform SDKs/plugins from WordPress to Unity to iOS |
+| **Real-Time** | Sub-second data pipeline via Kafka → ClickHouse |
+| **Privacy-First** | GDPR/CCPA compliant, cookieless, PII sanitization by default |
+| **Open-Source Stack** | 100% open-source technologies, no vendor lock-in |
+| **Multi-Tenant** | Isolated workspaces, team collaboration, role-based access |
+
+---
+
+## 2. SaaS Storefront (Public-Facing Website)
+
+The public storefront markets the product, drives trial sign-ups, and serves as the documentation hub.
+
+### 2.1 Marketing & Landing Pages
+- **Hero Section** — Animated value proposition with live demo embed
+- **Feature Showcase** — Interactive cards for Autocapture, Visual Tagger, Real-Time dashboards
+- **Platform Integrations Page** — Visual grid of all 9 supported platforms with logos
+- **Pricing Page** — Tiered pricing with interactive plan calculator (Free / Starter / Pro / Enterprise)
+- **Competitor Comparison Page** — Side-by-side vs. Google Analytics, Mixpanel, Amplitude
+- **About / Story Page** — Mission, team bios, open-source philosophy
+- **Blog / Changelog** — Technical articles, product updates, SEO-optimized content
+- **Roadmap Page** — Public product roadmap (Kanban-style, e.g. via Canny or built-in)
+
+### 2.2 Authentication & Onboarding
+- **Sign Up** — Email + password, Google OAuth, GitHub OAuth
+- **Email Verification** — Magic link email verification
+- **Login** — Session-based with JWT refresh tokens
+- **Forgot Password / Reset** — Secure email-based reset flow
+- **Workspaces Onboarding Wizard** — 4-step guided setup after registration:
+  1. Create Workspace / Project
+  2. Choose platform (select from 9 options)
+  3. Install tracking snippet/plugin (copy-paste or download)
+  4. Verify data is flowing (live ping indicator)
+
+### 2.3 Documentation & Developer Hub
+- **Quick Start Guides** — Per-platform installation guides with code samples
+- **API Reference** — Interactive OpenAPI/Swagger UI
+- **SDK Reference Docs** — Per-SDK methods, events, and properties reference
+- **Video Tutorials** — Embedded walkthroughs
+- **Search** — Full-text documentation search (Algolia DocSearch)
+- **Changelog** — Versioned release notes
+
+### 2.4 Trust & Compliance
+- **Privacy Policy** page (GDPR/CCPA compliant)
+- **Terms of Service** page
+- **Cookie-Free Badge** — Cookieless tracking certification display
+- **Security Page** — Data encryption, SOC2 commitments, penetration test disclosure
+- **Status Page** — Real-time system uptime dashboard (e.g., Statuspage.io)
+
+### 2.5 Conversion Funnels
+- **Live Demo** — Sandbox workspace pre-loaded with sample data
+- **Free Trial CTA** — No credit card required
+- **Testimonials / Case Studies** — Social proof from e-commerce, mobile app, and gaming customers
+- **Contact / Sales Form** — Enterprise inquiry with CRM integration
+
+---
+
+## 3. SaaS Admin Dashboard (Super Admin)
+
+The Super Admin panel is operated by the **Netra Analytics platform team** to manage all tenants, billing, infrastructure, and system health.
+
+### 3.1 Tenant & Account Management
+- **All Tenants List** — Searchable, filterable table of all registered organizations
+- **Tenant Profile** — View workspace details, owner, plan, usage stats, creation date
+- **Impersonate Tenant** — Securely log in as any tenant for support (with audit trail)
+- **Suspend / Reactivate Account** — Disable tenant access while preserving data
+- **Delete Tenant** — Soft-delete with 30-day recovery window, hard-delete scheduler
+- **Merge Accounts** — Merge duplicate or trial → paid accounts
+
+### 3.2 Subscription & Billing Management
+- **Plan Assignment** — Manually assign or override subscription tiers
+- **Billing History** — View all invoices per tenant
+- **Revenue Dashboard** — MRR, ARR, churn rate, new signups, plan distribution charts
+- **Coupon & Promo Code Management** — Create, assign, and track discount codes
+- **Trial Extension** — Extend trial period for specific tenants
+- **Stripe Integration View** — Link to Stripe customer record per tenant
+
+### 3.3 Platform Usage & Quotas
+- **Event Volume Monitor** — Real-time and historical event ingestion rates per tenant
+- **Storage Usage** — ClickHouse data size per tenant
+- **API Rate Limits** — Configure and enforce per-tenant ingestion rate limits
+- **Quota Alerts** — Auto-notify tenants approaching plan limits
+- **Throttling Controls** — Temporarily throttle high-volume tenants
+
+### 3.4 User & Roles Management
+- **All Users List** — Cross-tenant user directory
+- **Role Assignment** — Super Admin, Admin, Analyst, Viewer roles
+- **Team Management** — View all members of any workspace
+- **Audit Log** — Full trail of all admin actions (who did what, when)
+
+### 3.5 Data Pipeline Health
+- **Kafka Cluster Monitor** — Consumer lag, topic throughput, broker health
+- **ClickHouse Health** — Query latency, disk usage, replication status
+- **Ingestion Error Log** — Failed event payloads with tenant context and error reason
+- **Data Retention Policies** — Configure per-plan data retention windows (30/90/365 days)
+- **Backfill Jobs** — Trigger historical data re-processing jobs
+
+### 3.6 SDK & Plugin Registry
+- **SDK Version Manager** — Track which tenants are on which SDK version
+- **Plugin / SDK Release Manager** — Publish new SDK releases with changelogs
+- **Deprecation Alerts** — Notify tenants using outdated SDK versions
+
+### 3.7 System Configuration
+- **Feature Flags** — Toggle beta features per tenant or globally
+- **Email Template Manager** — Edit transactional email templates
+- **Announcement Banner** — Push system-wide banners to user dashboards
+- **Maintenance Mode** — Enable/disable maintenance windows
+
+### 3.8 Analytics & Reporting (Platform Meta-Analytics)
+- **Signup Funnel Analytics** — Conversion from visit → trial → paid
+- **Platform Adoption Heatmap** — Which of the 9 SDK platforms are most used
+- **Feature Usage Stats** — Which dashboard features are used most
+- **Support Ticket Volume** — Integrated with helpdesk (e.g., Intercom/Crisp)
+
+---
+
+## 4. User Dashboard & Analytics Dashboard
+
+This is the primary product delivered to paying customers — their personal analytics workspace.
+
+### 4.1 Workspace & Project Settings
+- **Project Management** — Create multiple projects per workspace (e.g., website + mobile app)
+- **Tracking Snippet** — One-click copy of JS snippet, API key management
+- **Team Invitations** — Invite team members via email with role assignment
+- **Domain Allowlist** — Whitelist authorized domains for data ingestion
+- **Data Retention Settings** — Self-service data retention duration selector
+- **Notification Preferences** — Email/Slack alerts for anomaly detection
+
+### 4.2 Visual Event Tagger (No-Code)
+- **Website Iframe Loader** — Load own website inside the SaaS dashboard
+- **Element Hover Highlighter** — Visual DOM overlay showing hovered element boundaries
+- **Click-to-Define Events** — Click any element to open event naming dialog
+- **Event Rule Library** — List of all defined tracking rules (CSS selectors → event names)
+- **Rule Testing** — Live test that a rule fires correctly before saving
+- **Rule Categories** — Organize rules into groups (e.g., "Checkout Events", "Navigation Events")
+
+### 4.3 Real-Time Dashboard
+- **Live Event Stream** — Live-scrolling feed of events as they are captured
+- **Active Users Now** — Realtime count of users currently on site/app
+- **Real-Time Map** — World map with live geographic user locations
+- **Top Pages Right Now** — Pages with most active users at this moment
+- **Realtime UTM Sources** — Where current visitors came from
+
+### 4.4 Audience & User Analytics
+- **Unique Visitors** — Daily/weekly/monthly unique visitor counts
+- **New vs. Returning Users** — Trend chart with breakdown
+- **User Profiles** — Per-user event timelines (anonymized or identified)
+- **User Segments / Cohorts** — Define and save user groups by behavior or properties
+- **Geo-Location Breakdown** — Country, region, city level traffic breakdown
+- **Device & Browser Breakdown** — OS, browser, screen resolution stats
+- **Language Distribution** — User language preferences
+
+### 4.5 Traffic Analytics
+- **Pageviews & Sessions** — Time-series charts with date range picker
+- **Bounce Rate** — Per-page and overall bounce rate trends
+- **Session Duration** — Average and distribution of session lengths
+- **Entry & Exit Pages** — Top landing pages and exit points
+- **Traffic Sources** — Direct, organic search, referral, social, email, paid
+- **UTM Campaign Tracking** — Source, medium, campaign, term, content tracking
+- **Referrer Breakdown** — Top referring domains
+
+### 4.6 E-Commerce Analytics (WooCommerce / Magento / Shopify / PrestaShop)
+- **Revenue Dashboard** — Total revenue, ARPU, GMV trends
+- **Conversion Rate** — Visit → add to cart → checkout → purchase funnel
+- **Top Products** — Best-selling products by revenue and quantity
+- **Cart Abandonment Rate** — % of carts abandoned at each checkout step
+- **Average Order Value (AOV)** — Trend over time
+- **Coupon Usage Tracking** — Which promo codes drive most revenue
+- **Refund Rate** — Refunds over time against total revenue
+
+### 4.7 Funnel Analysis
+- **Custom Funnel Builder** — Drag-and-drop multi-step funnel definition
+- **Drop-off Visualization** — Funnel chart showing % drop at each step
+- **Funnel Segmentation** — Filter funnel by device, UTM source, cohort
+- **Conversion Rate Benchmarks** — Compare funnel performance over time periods
+- **A/B Funnel Comparison** — Compare two date ranges or user segments
+
+### 4.8 Retention & Cohort Analysis
+- **Cohort Retention Matrix** — Heatmap grid (week 0 → week N) by signup cohort
+- **Retention Curve** — N-day retention % trend line chart
+- **Feature Retention** — Which features keep users coming back
+- **Power Users** — Identify "power users" (top 10% by event count)
+- **Churned Users** — Identify users who have not returned in X days
+
+### 4.9 Event Explorer
+- **Event List** — All captured events with timestamp, user, properties
+- **Event Property Inspector** — Drill down into individual event payloads
+- **Custom Event Filtering** — Filter by event name, user, date, property value
+- **Event Volume Chart** — Events over time per event name
+- **Property Breakdown** — Breakdown any event by a property dimension
+
+### 4.10 Reports & Exports
+- **Custom Report Builder** — Compose multi-widget reports from any metric
+- **Scheduled Email Reports** — Send weekly/monthly PDF reports to team
+- **Dashboard Templates** — Pre-built report templates (E-commerce, Mobile App, SaaS)
+- **CSV / JSON Export** — Export any dataset for external analysis
+- **API Access** — REST API to pull analytics data into external BI tools
+
+### 4.11 Mobile App Analytics (Android / iOS / React Native)
+- **Screen Views** — App screen navigation tracking
+- **Session Tracking** — App open, active time, background, close
+- **Crash Rate** — % of sessions ending in a crash (with crash context)
+- **Device Performance Monitor** — App load time, frame rate stats
+- **Push Notification Analytics** — Delivered, opened, converted
+- **In-App Purchase Tracking** — IAP events, revenue from purchases
+- **App Version Distribution** — Usage by app version
+
+### 4.12 Game Analytics (Unity)
+- **Player Session Length** — Average and distribution of play sessions
+- **Level Completion Rates** — % of players completing each game level
+- **Level Drop-off Funnel** — Where players stop progressing
+- **Virtual Economy Tracking** — In-game currency spent/earned events
+- **Monetization Dashboard** — IAP revenue, conversion to paying player
+- **DAU/MAU Ratio** — Daily/Monthly active user stickiness ratio
+- **Player Journey Map** — Sankey diagram of player event flows
+
+### 4.13 Alerts & Anomaly Detection
+- **Custom Alert Builder** — Set thresholds on any metric
+- **Anomaly Detection** — Auto-detect unusual spikes/drops in events
+- **Alert Channels** — Email, Slack webhook, PagerDuty integration
+- **Alert History** — Log of all triggered alerts
+
+---
+
+## 5. Data Collection Plugins & SDKs
+
+All platforms transmit a standardized JSON event payload to the central ingestion API.
+
+### Standard Event Payload Schema
+```json
+{
+  "tenant_id": "uuid",
+  "project_id": "uuid",
+  "session_id": "uuid",
+  "user_id": "hashed_string",
+  "event_name": "string",
+  "timestamp": "ISO8601",
+  "platform": "web|android|ios|unity|react_native",
+  "device": { "type": "mobile|desktop|tablet", "os": "string", "browser": "string" },
+  "geo": { "country": "string", "city": "string" },
+  "properties": { "key": "value" }
+}
+```
+
+---
+
+### 5.1 WordPress Plugin
+**Plugin Name:** `netra-analytics-for-wordpress`
+**Distribution:** WordPress.org Plugin Directory
+
+| Feature | Details |
+|---------|---------|
+| **Auto Script Injection** | Uses `wp_head` hook to inject tracking JS on all pages |
+| **Admin Settings Page** | Enter API key, configure options |
+| **WooCommerce Integration** | Hooks into `woocommerce_thankyou` for server-side purchase events |
+| **Order Revenue Tracking** | Sends order total, product array, coupon codes via backend HTTP POST |
+| **User Identity** | Passes hashed WordPress user ID for logged-in user tracking |
+| **Excluded Roles** | Option to exclude Admins from being tracked |
+| **Custom Post Type Events** | Auto-tracks CPT page views |
+| **GDPR Consent Hook** | Integrates with GDPR plugins (WP Consent API) before activating tracking |
+| **Script Async Loading** | Loads tracking script asynchronously to not block page rendering |
+
+---
+
+### 5.2 WooCommerce Plugin
+*(Bundled within the WordPress plugin as an optional WooCommerce module)*
+
+| Feature | Details |
+|---------|---------|
+| **View Product Event** | Fires on single product pages |
+| **Add to Cart Event** | JS event on add-to-cart action |
+| **Checkout Started Event** | Fires when checkout page is loaded |
+| **Purchase Event (Server-Side)** | `woocommerce_thankyou` PHP hook → backend API call |
+| **Cart Abandonment Tracking** | Tracks sessions ending without completing checkout |
+| **Product Search Tracking** | Tracks search queries and result counts |
+| **Revenue Attribution** | Associates revenue with UTM source/medium |
+| **Refund Event** | `woocommerce_order_refunded` hook fires refund event |
+
+---
+
+### 5.3 Magento 2 Extension
+**Extension Name:** `Netra_Analytics`
+**Distribution:** Packagist / Github / Magento Marketplace
+
+| Feature | Details |
+|---------|---------|
+| **Layout XML Injection** | Uses `default.xml` to inject script block into `<head>` |
+| **Order Observer** | Listens to `checkout_submit_all_after` event |
+| **Server-Side Purchase** | Dispatches order data via Magento message queue → REST POST |
+| **Customer Hash** | Hashes customer email using SHA-256 before sending |
+| **Category & Product View** | Tracks catalog browsing events |
+| **Admin Configuration** | Magento `System > Configuration` panel for API key |
+| **Multi-Store** | Per-store API key configuration for multi-store setups |
+| **CSP Whitelist** | Auto-adds Netra CDN to Magento's CSP whitelist |
+
+---
+
+### 5.4 PrestaShop Module
+**Module Name:** `netraanalytics`
+**Distribution:** PrestaShop Addons Marketplace / GitHub
+
+| Feature | Details |
+|---------|---------|
+| **displayHeader Hook** | Registers with PrestaShop hook to inject tracking script |
+| **actionValidateOrder Hook** | Server-side order completion event |
+| **Cart & Revenue Data** | Serializes cart ID, product list, total, currency |
+| **Product View Hook** | `actionProductAdd` and product page view events |
+| **Customer Hashing** | Hashes email before transmitting |
+| **Module Configuration** | Back-office configuration page for API key |
+| **Multi-Language Support** | Compatible with PrestaShop's native i18n system |
+
+---
+
+### 5.5 Shopify App
+**App Name:** `Netra Analytics for Shopify`
+**Distribution:** Shopify App Store
+
+| Feature | Details |
+|---------|---------|
+| **Theme Extension** | Injects tracking script via Shopify App Blocks (Online Store 2.0) |
+| **Script Tag API** | Fallback for older themes using Shopify ScriptTag API |
+| **Order Webhook** | Shopify `orders/paid` webhook → server-side purchase event |
+| **Product & Collection Views** | Tracks product and collection page views |
+| **Search Tracking** | Tracks Shopify predictive search events |
+| **Checkout Funnel** | Tracks cart → checkout → payment → order_paid steps |
+| **Customer Identification** | Hashes Shopify customer ID for cross-session linking |
+| **OAuth Install Flow** | Standard Shopify OAuth app install with session tokens |
+| **GDPR Webhooks** | Handles Shopify GDPR mandatory customer data deletion requests |
+
+---
+
+### 5.6 Unity SDK
+**Package:** `NetraAnalytics.unitypackage` / Unity Package Manager (UPM)
+**Language:** C#
+
+| Feature | Details |
+|---------|---------|
+| **Persistent Game Object** | `DontDestroyOnLoad` singleton manager |
+| **Session Tracking** | Auto-tracks session start, pause (`OnApplicationPause`), resume, end |
+| **Scene View Events** | Auto-fires `$scene_view` on scene loads |
+| **Custom Event API** | `Netra.Track("Level_Complete", properties)` |
+| **Level Progress Tracking** | Built-in helpers for level_start, level_complete, level_fail |
+| **IAP Revenue Tracking** | Hooks into Unity IAP to track purchase revenue |
+| **Ad Impression Tracking** | Integration with Unity Ads impression events |
+| **Offline Queue** | SQLite-backed offline event queue; auto-flush on reconnect |
+| **Batch Sending** | Sends events in micro-batches (default: 20 events or every 30s) |
+| **Performance Safe** | All HTTP calls on background thread; zero main-thread blocking |
+| **iOS ATT Handling** | Requests App Tracking Transparency on iOS builds |
+| **PC/Mac/WebGL/Android/iOS** | Supports all Unity build targets |
+
+---
+
+### 5.7 Android Native SDK
+**Language:** Kotlin (Java compatible)
+**Distribution:** Maven Central / JitPack
+
+| Feature | Details |
+|---------|---------|
+| **Lifecycle Callbacks** | `Application.ActivityLifecycleCallbacks` for auto screen tracking |
+| **Session Management** | Auto session start/end based on foreground/background state |
+| **Screen View Events** | Auto-captures `$screen_view` on every `Activity` / `Fragment` |
+| **Custom Event API** | `Netra.track("button_clicked", properties)` |
+| **User Identification** | `Netra.identify("user_id", traits)` for logged-in users |
+| **Device Properties** | Auto-captures device model, Android OS version, screen size |
+| **Offline Queue** | Room DB (SQLite) buffering with exponential retry |
+| **Crash Tracking** | `Thread.UncaughtExceptionHandler` captures fatal crashes |
+| **Push Token Tracking** | FCM token capture and association with user profile |
+| **Foreground Service** | Optional background session extension |
+| **Privacy (GDPR)** | `Netra.optOut()` method; no PII stored raw |
+
+---
+
+### 5.8 React Native SDK
+**Language:** TypeScript / JavaScript
+**Distribution:** npm (`@netra/react-native`)
+
+| Feature | Details |
+|---------|---------|
+| **AppState Tracking** | Uses React Native `AppState` API for session management |
+| **Navigation Tracking** | Auto-integration with React Navigation and Expo Router |
+| **Custom Event API** | `Netra.track("event_name", {props})` async method |
+| **User Identification** | `Netra.identify(userId, traits)` |
+| **Async Storage Queue** | Uses `@react-native-async-storage/async-storage` for offline events |
+| **Platform Detection** | Auto-detects iOS vs Android and sets `platform` property |
+| **Expo Compatible** | Works with bare and managed Expo workflows |
+| **TypeScript Types** | Full TypeScript type definitions included |
+| **Error Boundary Hook** | `NetraErrorBoundary` component to capture JS crashes |
+| **IDFA / AAID** | Supports optional advertising ID collection with user consent |
+
+---
+
+### 5.9 iOS Native SDK
+**Language:** Swift (Objective-C compatible)
+**Distribution:** Swift Package Manager (SPM) / CocoaPods
+
+| Feature | Details |
+|---------|---------|
+| **Method Swizzling** | Swizzles `viewDidAppear` on `UIViewController` for auto screen tracking |
+| **Session Management** | `UIApplication.didBecomeActiveNotification` / `willResignActiveNotification` |
+| **Custom Event API** | `Netra.shared.track("event_name", properties: [:])` |
+| **User Identification** | `Netra.shared.identify(userId: "id", traits: [:])` |
+| **UserDefaults Queue** | Offline event buffer persisted in `UserDefaults` / SQLite |
+| **ATT Framework** | Handles Apple App Tracking Transparency prompt and IDFA collection |
+| **SwiftUI Support** | `NetraView` wrapper and `.netraTrack()` view modifier |
+| **Crash Tracking** | `NSSetUncaughtExceptionHandler` for crash state capture |
+| **Push Notification** | APNs token capture and attribution tracking |
+| **Background Sessions** | `URLSession` background transfer for queued events |
+
+---
+
+## 6. Detailed Tech Stack
+
+### 6.1 Frontend
+
+| Category | Technology | Purpose |
+|----------|-----------|---------|
+| **Framework** | Next.js 15 (App Router) | SSR/SSG for storefront, CSR for dashboards |
+| **Language** | TypeScript | Full type safety across frontend & backend |
+| **UI Library** | Shadcn UI + Radix UI | Accessible, unstyled components with full DOM control |
+| **CSS** | Tailwind CSS v4 | Utility-first styling; custom design tokens |
+| **Charting** | Apache ECharts (via echarts-for-react) | Canvas-based rendering for high-density analytics charts |
+| **State Management** | Zustand | Lightweight global state for dashboard filters |
+| **Data Fetching** | TanStack Query (React Query) | Server state, caching, background refetching |
+| **Forms** | React Hook Form + Zod | Type-safe form handling and schema validation |
+| **Animations** | Framer Motion | Micro-animations, page transitions |
+| **Icons** | Lucide React | Consistent SVG icon set |
+| **Tables** | TanStack Table | Virtualized, sortable, filterable data tables |
+| **Date Picker** | react-day-picker | Calendar-based date range selection for dashboards |
+| **Maps** | Leaflet.js / react-leaflet | Interactive geo-distribution maps |
+| **Drag & Drop** | @dnd-kit | Funnel builder and dashboard layout customization |
+| **Real-time** | Socket.io client | Live event stream on real-time dashboard |
+
+### 6.2 Backend / API
+
+| Category | Technology | Purpose |
+|----------|-----------|---------|
+| **Runtime** | Node.js 22 LTS | JavaScript server runtime |
+| **API Framework** | Next.js API Routes + Fastify | Next.js for app APIs; Fastify for high-throughput ingestion endpoint |
+| **Language** | TypeScript | Shared types with frontend |
+| **Authentication** | NextAuth.js v5 (Auth.js) | OAuth (Google/GitHub), magic links, JWT sessions |
+| **Authorization** | CASL | Attribute-based access control (ABAC) for multi-tenant RBAC |
+| **Schema Validation** | Zod | Runtime payload validation on ingestion API |
+| **ORM (Postgres)** | Drizzle ORM | Type-safe SQL for relational data (users, workspaces, billing) |
+| **API Documentation** | OpenAPI + @hono/swagger-ui | Auto-generated API docs |
+| **Email** | Resend / Nodemailer | Transactional email delivery |
+| **Payments** | Stripe | Subscription billing, metered billing |
+| **Rate Limiting** | Upstash Redis (rate-limit library) | Per-tenant API ingestion rate limiting |
+| **Job Queue** | BullMQ (Redis-backed) | Async jobs: report generation, scheduled emails |
+| **WebSockets** | Socket.io server | Real-time event push to dashboard |
+| **Caching** | Redis (ioredis) | API key validation cache, session cache, query cache |
+| **File Storage** | MinIO (S3-compatible) | Report PDF storage, SDK binary hosting |
+
+### 6.3 Data Pipeline (Event Ingestion & Processing)
+
+| Category | Technology | Purpose |
+|----------|-----------|---------|
+| **Message Broker** | Apache Kafka (KRaft mode) | Durable, high-throughput event stream buffer |
+| **Kafka Client** | KafkaJS | Node.js Kafka producer for ingestion API |
+| **OLAP Database** | ClickHouse | Columnar analytical database for all event data |
+| **ClickHouse Driver** | @clickhouse/client | Official Node.js client |
+| **Stream Processing** | ClickHouse Kafka Engine | Native Kafka → ClickHouse consumer (no extra middleware) |
+| **Materialized Views** | ClickHouse MVs | Pre-aggregated rollups for common dashboard queries |
+| **GeoIP** | MaxMind GeoLite2 | IP address → Country/City resolution (on ingestion server) |
+| **PII Sanitization** | Custom middleware | SHA-256 hashing of emails/IPs, keyword blocklist stripping |
+| **Schema** | MergeTree (tenant_id, event_name, timestamp) | Optimal sort key for multi-tenant analytical queries |
+
+### 6.4 Relational Database (OLTP)
+
+| Category | Technology | Purpose |
+|----------|-----------|---------|
+| **Database** | PostgreSQL 16 | Users, workspaces, billing, tracking rules, SDK configurations |
+| **Migrations** | Drizzle Kit | Version-controlled schema migrations |
+| **Connection Pooling** | PgBouncer | Connection pooling for serverless environments |
+
+### 6.5 Infrastructure & DevOps
+
+| Category | Technology | Purpose |
+|----------|-----------|---------|
+| **Containerization** | Docker + Docker Compose | Local dev environment orchestration |
+| **Container Orchestration** | Kubernetes (K8s) | Production deployment and auto-scaling |
+| **IaC** | Terraform | Infrastructure provisioning (cloud-agnostic) |
+| **Reverse Proxy** | Nginx | Load balancing, SSL termination, static serving |
+| **SSL** | Let's Encrypt + Certbot | Free TLS certificates |
+| **Monitoring** | Prometheus + Grafana | Infrastructure and application metrics |
+| **Logging** | OpenTelemetry + Loki + Grafana | Distributed tracing and log aggregation |
+| **Error Tracking** | Sentry (self-hosted) | Application error monitoring |
+| **CI/CD** | GitHub Actions | Automated testing, linting, Docker image builds, deployments |
+| **Registry** | GitHub Container Registry (GHCR) | Docker image storage |
+
+### 6.6 SDKs & Plugins Tech Stack
+
+| Platform | Language | Key Libraries |
+|----------|----------|--------------|
+| **JavaScript (Web)** | TypeScript | Vanilla TS, MutationObserver, History API, PostMessage |
+| **WordPress/WooCommerce** | PHP 8.1+ | WordPress Plugin API, WooCommerce hooks, wp_remote_post |
+| **Magento 2** | PHP 8.1+ | Magento Observer, Layout XML, MessageQueue, REST Client |
+| **PrestaShop** | PHP 8.1+ | PrestaShop MVC, Hook system, Curl |
+| **Shopify** | Node.js + PHP | Shopify API, Webhook handlers, App Bridge |
+| **Unity** | C# / .NET | UnityWebRequest, SQLite, JsonUtility, PlayerPrefs |
+| **Android** | Kotlin | OkHttp, Room DB, Gson, Lifecycle Components |
+| **React Native** | TypeScript | AsyncStorage, React Navigation, Expo APIs |
+| **iOS** | Swift 5.9+ | URLSession, SQLite.swift, SwiftUI, Combine |
+
+---
+
+## 7. System Architecture Diagrams
+
+### 7.1 High-Level System Architecture
+
+```mermaid
+graph TB
+    subgraph CLIENTS["📱 Client Endpoints (9 Platforms)"]
+        WP[WordPress / WooCommerce<br/>PHP Plugin]
+        MAG[Magento 2<br/>PHP Extension]
+        PS[PrestaShop<br/>PHP Module]
+        SHO[Shopify<br/>Node.js App]
+        WEB[Web JS<br/>Autocapture Script]
+        RN[React Native<br/>TypeScript SDK]
+        AND[Android Native<br/>Kotlin SDK]
+        IOS[iOS Native<br/>Swift SDK]
+        UNI[Unity<br/>C# SDK]
+    end
+
+    subgraph INGESTION["⚡ Stateless Ingestion Layer"]
+        ING[Fastify Ingestion API<br/>Node.js / TypeScript]
+        REDIS[(Redis Cache<br/>API Key Validation)]
+        GEO[MaxMind GeoIP<br/>Resolution]
+        PII[PII Sanitizer<br/>SHA-256 Hashing]
+    end
+
+    subgraph PIPELINE["🔄 Data Pipeline"]
+        KAFKA[Apache Kafka<br/>Event Stream Broker]
+        CH_KAFKA[ClickHouse Kafka Engine<br/>Stream Consumer]
+    end
+
+    subgraph STORAGE["🗄️ Storage Layer"]
+        CH[(ClickHouse Cluster<br/>OLAP - Events)]
+        PG[(PostgreSQL<br/>OLTP - Users/Billing)]
+        MINIO[(MinIO<br/>S3 - Files/Reports)]
+    end
+
+    subgraph BACKEND["🖥️ Application Backend"]
+        NEXT[Next.js API Routes<br/>App Layer]
+        BULLMQ[BullMQ<br/>Job Queue]
+        SOCKET[Socket.io<br/>WebSocket Server]
+    end
+
+    subgraph FRONTEND["🌐 Frontend"]
+        STORE[Next.js Storefront<br/>SSG/SSR - Marketing]
+        DASH[React Dashboard<br/>Analytics UI]
+        TAGGER[Visual Event Tagger<br/>Iframe + PostMessage]
+    end
+
+    CLIENTS -->|JSON HTTP POST| ING
+    ING <-->|Validate Key| REDIS
+    ING --> PII
+    ING --> GEO
+    ING -->|Publish Event| KAFKA
+    KAFKA --> CH_KAFKA
+    CH_KAFKA -->|Batch Insert| CH
+
+    NEXT <-->|SQL Queries| CH
+    NEXT <-->|CRUD Queries| PG
+    NEXT --> BULLMQ
+    BULLMQ --> MINIO
+
+    SOCKET -->|Realtime Push| DASH
+    NEXT --> SOCKET
+
+    DASH <-->|REST / WS| NEXT
+    STORE <-->|REST| NEXT
+```
+
+---
+
+### 7.2 Event Data Flow (Detailed)
+
+```mermaid
+sequenceDiagram
+    participant CLIENT as Client SDK<br/>(any platform)
+    participant API as Ingestion API<br/>(Fastify)
+    participant CACHE as Redis Cache
+    participant KAFKA as Apache Kafka
+    participant CH as ClickHouse
+    participant DASH as Analytics Dashboard
+
+    CLIENT->>API: POST /ingest (JSON Event Payload)
+    API->>CACHE: Validate tenant_id & API key
+    CACHE-->>API: Valid / Rate limit status
+    API->>API: Strip PII, Resolve GeoIP, Add server timestamp
+    API->>KAFKA: Produce to topic "raw_events"
+    API-->>CLIENT: 200 OK (immediate response)
+
+    Note over KAFKA,CH: Asynchronous Batch Processing
+    KAFKA->>CH: Kafka Engine consumes micro-batches
+    CH->>CH: Insert into events_local MergeTree table
+    CH->>CH: Materialized Views compute rollups
+
+    DASH->>API: GET /api/dashboard/pageviews?range=7d
+    API->>CH: SELECT ... FROM events WHERE tenant_id=X AND date>=...
+    CH-->>API: Aggregated result set (ms latency)
+    API-->>DASH: JSON metrics response
+```
+
+---
+
+### 7.3 Multi-Tenant Database Architecture
+
+```mermaid
+graph LR
+    subgraph PG["PostgreSQL (OLTP)"]
+        direction TB
+        T1[tenants table<br/>id, name, plan, stripe_id]
+        T2[users table<br/>id, tenant_id, role, email]
+        T3[projects table<br/>id, tenant_id, name, api_key]
+        T4[tracking_rules table<br/>id, project_id, selector, event_name]
+        T5[subscriptions table<br/>id, tenant_id, status, plan]
+    end
+
+    subgraph CH["ClickHouse (OLAP) — Shared Schema"]
+        direction TB
+        E1["events_local MergeTree<br/>ORDER BY (tenant_id, event_name, timestamp)"]
+        E2["sessions MergeTree<br/>ORDER BY (tenant_id, session_id)"]
+        E3["daily_rollups MaterializedView<br/>Pre-aggregated by tenant per day"]
+        E4["hourly_rollups MaterializedView<br/>Pre-aggregated by tenant per hour"]
+    end
+
+    subgraph ISOLATION["Row-Level Security"]
+        RLS[ClickHouse RLS Policy<br/>WHERE tenant_id = current_user_tenant]
+    end
+
+    T1 --- T2
+    T1 --- T3
+    T3 --- T4
+    T1 --- T5
+
+    E1 --> E3
+    E1 --> E4
+    E1 --- RLS
+    E2 --- RLS
+```
+
+---
+
+### 7.4 No-Code Visual Event Tagger Flow
+
+```mermaid
+sequenceDiagram
+    participant USER as Non-Technical<br/>User (Marketer)
+    participant DASH as Netra Dashboard
+    participant IFRAME as User's Website<br/>(inside iframe)
+    participant SDK as Tracking Script<br/>(on user's site)
+    participant DB as Database
+
+    USER->>DASH: Opens Visual Tagger tool
+    DASH->>IFRAME: Load user's website in <iframe>
+    DASH->>SDK: postMessage: "ENTER_TAGGING_MODE"
+    SDK->>IFRAME: Inject transparent DOM overlay
+    SDK->>IFRAME: Register mousemove → highlight element
+
+    USER->>IFRAME: Hovers over "Buy Now" button
+    IFRAME-->>USER: Highlighted with colored border
+
+    USER->>IFRAME: Clicks "Buy Now" button
+    SDK->>DASH: postMessage: { selector: "#buy-btn", elementText: "Buy Now" }
+    DASH-->>USER: Show "Name this event" dialog
+    USER->>DASH: Types "Purchase_Initiated" → Save
+
+    DASH->>DB: Store { selector: "#buy-btn", event_name: "Purchase_Initiated" }
+    DB-->>DASH: Rule saved ✓
+    DASH->>SDK: postMessage: "SYNC_TRACKING_RULES"
+
+    Note over SDK,DB: In Production Runtime
+    SDK->>SDK: User clicks #buy-btn on live site
+    SDK->>SDK: Match selector against cached rules
+    SDK->>API: POST /ingest { event_name: "Purchase_Initiated" }
+```
+
+---
+
+### 7.5 SDK Platform Architecture Matrix
+
+```mermaid
+graph TD
+    subgraph WEB_PLATFORMS["🌐 Web & CMS Platforms"]
+        JS[JavaScript Web SDK<br/>Autocapture + Visual Tagger]
+        WP2[WordPress Plugin<br/>PHP + JS]
+        WC[WooCommerce Module<br/>PHP Hooks + Server Events]
+        M2[Magento 2 Extension<br/>Observer + Layout XML]
+        PRESTA[PrestaShop Module<br/>Hook System + MVC]
+        SHOP[Shopify App<br/>Webhooks + App Blocks]
+    end
+
+    subgraph MOBILE_PLATFORMS["📱 Mobile Platforms"]
+        AND2[Android SDK<br/>Kotlin + Room + OkHttp]
+        RN2[React Native SDK<br/>TypeScript + AsyncStorage]
+        IOS2[iOS SDK<br/>Swift + URLSession + SQLite]
+    end
+
+    subgraph GAME_PLATFORMS["🎮 Game Platforms"]
+        UNITY2[Unity SDK<br/>C# + UnityWebRequest + SQLite]
+    end
+
+    subgraph COMMON["🔗 Common Ingestion API"]
+        API2[POST /v1/ingest<br/>standardized JSON payload]
+    end
+
+    JS --> API2
+    WP2 --> API2
+    WC --> API2
+    M2 --> API2
+    PRESTA --> API2
+    SHOP --> API2
+    AND2 --> API2
+    RN2 --> API2
+    IOS2 --> API2
+    UNITY2 --> API2
+```
+
+---
+
+### 7.6 SaaS Application Modules Overview
+
+```mermaid
+mindmap
+  root((Netra Analytics))
+    Storefront
+      Marketing Pages
+      Pricing
+      Documentation
+      Auth Flow
+      Live Demo
+    Admin Dashboard
+      Tenant Management
+      Billing & Revenue
+      Platform Analytics
+      Feature Flags
+      SDK Registry
+      Pipeline Health
+    User Dashboard
+      Project Settings
+      Visual Event Tagger
+      Real-Time Monitor
+      Audience Analytics
+      Traffic Analytics
+      E-Commerce Analytics
+      Funnel Analysis
+      Retention & Cohorts
+      Mobile Analytics
+      Game Analytics
+      Alerts & Anomaly
+      Reports & Exports
+    Data Collection
+      JS Web SDK
+      WordPress Plugin
+      WooCommerce Module
+      Magento 2 Extension
+      PrestaShop Module
+      Shopify App
+      Unity C# SDK
+      Android Kotlin SDK
+      React Native SDK
+      iOS Swift SDK
+    Data Pipeline
+      Fastify Ingestion API
+      Apache Kafka
+      ClickHouse OLAP
+      Redis Cache
+      MaxMind GeoIP
+      PII Sanitizer
+```
+
+---
+
+## Implementation Priority (MVP → Full Platform)
+
+### Phase 1 — MVP (Months 1-4)
+- [ ] SaaS Storefront (marketing + auth)
+- [ ] Core User Dashboard (pageviews, sessions, traffic sources)
+- [ ] JavaScript Web SDK (autocapture)
+- [ ] WordPress + WooCommerce Plugin
+- [ ] Kafka + ClickHouse data pipeline
+- [ ] Stripe billing integration
+- [ ] Team invitations & multi-project support
+
+### Phase 2 — Growth (Months 5-8)
+- [ ] Visual Event Tagger (iframe + postMessage)
+- [ ] Funnel Analysis + Cohort Retention
+- [ ] Android + iOS Native SDKs
+- [ ] React Native SDK
+- [ ] Magento 2 + PrestaShop modules
+- [ ] Shopify App Store submission
+- [ ] Admin Super Dashboard
+
+### Phase 3 — Scale (Months 9-12)
+- [ ] Unity C# SDK + Game Analytics Dashboard
+- [ ] Real-Time Dashboard (Socket.io)
+- [ ] Anomaly Detection & Alerts
+- [ ] Scheduled Reports & PDF exports
+- [ ] A/B Testing module (feature flags)
+- [ ] Predictive AI analytics (ML pipeline)
+- [ ] Self-hosted / on-premise deployment option

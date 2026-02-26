@@ -1,0 +1,43 @@
+# Dependencies
+node_modules/
+.pnpm-store/
+
+# Build outputs
+.next/
+dist/
+out/
+build/
+
+# Environment variables
+.env
+.env.local
+.env.production
+.env*.local
+
+# Logs
+*.log
+npm-debug.log*
+pnpm-debug.log*
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Editor
+.vscode/*
+!.vscode/extensions.json
+!.vscode/settings.json
+*.suo
+*.user
+
+# Turbo
+.turbo/
+
+# Docker
+infra/postgres/data/
+infra/clickhouse/data/
+infra/kafka/data/
+infra/redis/data/
+
+# TypeScript
+*.tsbuildinfo

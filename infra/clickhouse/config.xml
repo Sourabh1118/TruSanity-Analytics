@@ -1,0 +1,21 @@
+<clickhouse>
+    <!-- Allow connections from all interfaces (development only) -->
+    <listen_host>0.0.0.0</listen_host>
+
+    <!-- HTTP port -->
+    <http_port>8123</http_port>
+
+    <!-- Native TCP port -->
+    <tcp_port>9000</tcp_port>
+
+    <!-- Logging level -->
+    <logger>
+        <level>warning</level>
+    </logger>
+
+    <!-- Max memory per query (2GB for dev) -->
+    <max_memory_usage>2000000000</max_memory_usage>
+
+    <!-- Allow experimental features -->
+    <allow_experimental_object_type>1</allow_experimental_object_type>
+</clickhouse>
