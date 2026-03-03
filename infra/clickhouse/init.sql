@@ -149,3 +149,53 @@ AS SELECT
     uniq(anonymous_id) AS unique_users
 FROM netra.events
 GROUP BY tenant_id, project_id, hour, event_name;
+
+-- ──────────────────────────────────────────────────────────
+-- Kafka Engine Table (Consumes from 'netra.events' topic)
+-- ──────────────────────────────────────────────────────────
+CREATE TABLE IF NOT EXISTS netra.kafka_events
+(
+    -- JSON string map to ClickHouse MergeTree columns
+    tenant_id       UInt32,
+    project_id      UUID,
+    event_name      LowCardinality(String),
+    timestamp       DateTime64(3, 'UTC'),
+    session_id      String,
+    anonymous_id    String,
+    user_id         String,
+    url             String,
+    path            String,
+    referrer        String,
+    platform        LowCardinality(String),
+    device_type     LowCardinality(String),
+    country         LowCardinality(String),
+    properties      String
+) ENGINE = Kafka
+SETTINGS kafka_broker_list = 'kafka:9092',
+         kafka_topic_list = 'netra.events',
+         kafka_group_name = 'clickhouse_ingestion',
+         kafka_format = 'JSONEachRow',
+         kafka_num_consumers = 1;
+
+
+-- ──────────────────────────────────────────────────────────
+-- Materialized View: Kafka to MergeTree
+-- ──────────────────────────────────────────────────────────
+CREATE MATERIALIZED VIEW IF NOT EXISTS netra.kafka_events_mv TO netra.events AS
+SELECT
+    tenant_id,
+    project_id,
+    event_name,
+    timestamp,
+    session_id,
+    anonymous_id,
+    user_id,
+    url,
+    path,
+    referrer,
+    platform,
+    device_type,
+    country,
+    properties
+FROM netra.kafka_events;
+

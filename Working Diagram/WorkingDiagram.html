@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Netra Analytics - Working Architecture</title>
+    <!-- Tailwind CSS for beautiful styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        body { font-family: 'Inter', sans-serif; background-color: #0f1219; color: #f3f4f6; }
+        
+        .glow-box {
+            position: relative;
+        }
+        .glow-box::before {
+            content: '';
+            position: absolute;
+            top: -1px; left: -1px; right: -1px; bottom: -1px;
+            background: linear-gradient(45deg, rgba(124, 108, 250, 0.5), rgba(34, 211, 238, 0.5));
+            z-index: -1;
+            border-radius: 0.8rem;
+            filter: blur(8px);
+            opacity: 0.5;
+        }
+        
+        /* Animated arrows */
+        .arrow-down::after {
+            content: "↓";
+            display: block;
+            text-align: center;
+            font-size: 2rem;
+            color: #7c6cfa;
+            animation: bounce 2s infinite;
+            margin: 10px 0;
+        }
+        .arrow-right::after {
+            content: "→";
+            display: inline-block;
+            font-size: 2rem;
+            color: #22d3ee;
+            animation: slideRight 2s infinite;
+            margin: 0 15px;
+        }
+
+        @keyframes bounce {
+            0%, 20%, 50%, 80%, 100% { transform: translateY(0); }
+            40% { transform: translateY(-10px); }
+            60% { transform: translateY(-5px); }
+        }
+        @keyframes slideRight {
+            0%, 20%, 50%, 80%, 100% { transform: translateX(0); }
+            40% { transform: translateX(10px); }
+            60% { transform: translateX(5px); }
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+        .status-functional { background: rgba(16, 185, 129, 0.2); color: #10b981; border: 1px solid rgba(16, 185, 129, 0.3); }
+        .status-mock { background: rgba(245, 158, 11, 0.2); color: #f59e0b; border: 1px solid rgba(245, 158, 11, 0.3); }
+    </style>
+</head>
+<body class="p-8 md:p-16 antialiased">
+
+<div class="max-w-5xl mx-auto">
+    <div class="text-center mb-16">
+        <h1 class="text-4xl md:text-5xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-purple-400 to-cyan-400 mb-4 tracking-tight">Netra Analytics Data Engine</h1>
+        <p class="text-gray-400 text-lg max-w-2xl mx-auto">A visual representation of how data flows from your customers' websites down to the exact databases, and where the UI dashboards render that data.</p>
+    </div>
+
+    <!-- Tier 1: Data Sources -->
+    <div class="mb-8">
+        <h2 class="text-xl font-semibold mb-4 text-gray-300 border-b border-gray-800 pb-2">1. Data Sources (The Wild)</h2>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div class="bg-gray-900 border border-gray-800 rounded-xl p-6 shadow-xl relative overflow-hidden">
+                <div class="absolute top-0 right-0 w-16 h-16 bg-blue-500 rounded-bl-full opacity-10"></div>
+                <h3 class="text-lg font-bold text-white mb-2">Web / Browser SDK</h3>
+                <p class="text-gray-400 text-sm mb-4">Users visit your customer's website. The `@netra/sdk-js` tracks every click, pageview, and scroll automatically.</p>
+                <span class="status-badge status-functional">Functional - Triggers HTTP</span>
+            </div>
+            
+            <div class="bg-gray-900 border border-gray-800 rounded-xl p-6 shadow-xl relative overflow-hidden">
+                <div class="absolute top-0 right-0 w-16 h-16 bg-green-500 rounded-bl-full opacity-10"></div>
+                <h3 class="text-lg font-bold text-white mb-2">E-Commerce Plugins</h3>
+                <p class="text-gray-400 text-sm mb-4">Shopify or Magento fires a backend Webhook when an "Order Paid" event occurs securely on the server.</p>
+                <span class="status-badge status-functional">Functional - Server-to-Server</span>
+            </div>
+
+            <div class="bg-gray-900 border border-gray-800 rounded-xl p-6 shadow-xl relative overflow-hidden">
+                <div class="absolute top-0 right-0 w-16 h-16 bg-purple-500 rounded-bl-full opacity-10"></div>
+                <h3 class="text-lg font-bold text-white mb-2">Mobile Apps</h3>
+                <p class="text-gray-400 text-sm mb-4">React Native/iOS apps batch up data and send it when the phone restores internet connection.</p>
+                <span class="status-badge status-functional">Functional - Offline Queues</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="arrow-down flex justify-center w-full"></div>
+
+    <!-- Tier 2: The Ingestion API -->
+    <div class="mb-8 glow-box rounded-xl">
+        <div class="bg-gradient-to-br from-gray-900 to-indigo-950 border border-indigo-500/30 rounded-xl p-8 shadow-2xl relative">
+            <h2 class="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-indigo-400 to-purple-400 mb-2">2. Fastify Edge API (apps/api)</h2>
+            <p class="text-gray-300 text-sm mb-6 max-w-3xl">The high-throughput traffic cop. It catches millions of incoming JSON blocks per second without crashing.</p>
+            
+            <div class="flex flex-col md:flex-row items-center justify-between gap-6">
+                <!-- Redis Sub-Box -->
+                <div class="bg-gray-950/50 border border-gray-700 rounded-lg p-5 flex-1 w-full relative">
+                    <span class="absolute top-3 right-3 status-badge status-functional text-[10px]">Active</span>
+                    <h4 class="text-red-400 font-bold mb-1 flex items-center">
+                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4m0 5c0 2.21-3.582 4-8 4s-8-1.79-8-4"></path></svg>
+                        Redis Cache
+                    </h4>
+                    <p class="text-xs text-gray-400">Verifies if the incoming Project ID is a valid paying customer. Also rate-limits abusive IPs instantly.</p>
+                </div>
+                
+                <div class="arrow-right hidden md:block"></div>
+                <div class="arrow-down md:hidden block"></div>
+
+                <!-- Kafka Sub-Box -->
+                <div class="bg-gray-950/50 border border-gray-700 rounded-lg p-5 flex-1 w-full relative">
+                    <span class="absolute top-3 right-3 status-badge status-functional text-[10px]">Active</span>
+                    <h4 class="text-amber-400 font-bold mb-1 flex items-center">
+                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 002-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path></svg>
+                        Apache Kafka Queue
+                    </h4>
+                    <p class="text-xs text-gray-400">Throws the valid raw payload onto the `netra.events` queue and tells the browser "HTTP 202 Accepted" so the app doesn't freeze.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="arrow-down flex justify-center w-full"></div>
+
+    <!-- Tier 3: Asynchronous Sinking -->
+    <div class="mb-8">
+        <h2 class="text-xl font-semibold mb-4 text-gray-300 border-b border-gray-800 pb-2">3. Background Worker & Data Warehouse</h2>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div class="bg-gray-900 border border-gray-800 rounded-xl p-6 shadow-xl relative">
+                <span class="absolute top-4 right-4 status-badge status-functional">Daemon Running</span>
+                <h3 class="text-lg font-bold text-teal-400 mb-2">Consumer Node.js</h3>
+                <p class="text-gray-400 text-sm mb-4">A background script (`consumer.ts`) quietly reading from Kafka in chunks of 500. It cleans up the timestamps and converts the data into massive JSON blocks.</p>
+            </div>
+            
+            <div class="bg-[#1a1A1d] border border-yellow-500/30 rounded-xl p-6 shadow-xl shadow-yellow-500/5 relative">
+                <span class="absolute top-4 right-4 status-badge status-functional">Holding Data</span>
+                <h3 class="text-lg font-bold text-yellow-500 mb-2">ClickHouse Database</h3>
+                <p class="text-gray-400 text-sm mb-4">The absolute beast. It receives the 500-event blocks and writes them to the solid-state drives in highly compressed columns. Built for math and speed.</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="arrow-down flex justify-center w-full"></div>
+
+    <!-- Tier 4: The Visualization -->
+    <div class="glow-box rounded-xl">
+        <div class="bg-gradient-to-br from-gray-900 to-cyan-950 border border-cyan-500/30 rounded-xl p-8 shadow-2xl relative">
+            <h2 class="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-cyan-400 to-blue-400 mb-2">4. Next.js SaaS Web Interface (apps/web)</h2>
+            <p class="text-gray-300 text-sm mb-6 max-w-3xl">The beautiful front-end that you (Super Admin) and your SaaS customers interact with via web browsers at `localhost:3000`.</p>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <!-- PostgreSQL Auth -->
+                <div class="bg-gray-950/50 border border-gray-700 rounded-lg p-5 relative">
+                    <span class="absolute top-3 right-3 status-badge status-functional text-[10px]">Active</span>
+                    <h4 class="text-blue-400 font-bold mb-1">PostgreSQL + Drizzle</h4>
+                    <p class="text-xs text-gray-400">Verifies your password. Next.js Middleware checks if you are a `SUPER_ADMIN` or a standard `user` and locks down the routes to keep SaaS data secure.</p>
+                </div>
+                
+                <!-- Front-End Charts -->
+                <div class="bg-amber-950/30 border border-amber-700/50 rounded-lg p-5 relative">
+                    <span class="absolute top-3 right-3 status-badge status-mock text-[10px]">Awaiting Bridge</span>
+                    <h4 class="text-amber-400 font-bold mb-1">ECharts Dashboards</h4>
+                    <p class="text-xs text-amber-200/70">The beautiful UI cards, graphs, and tables exist, but right now they are drawing <strong>Fake Array Constants</strong> (e.g. `[3200, 4100]`) instead of running `SELECT` queries across ClickHouse!</p>
+                </div>
+            </div>
+            
+            <div class="mt-6 p-4 bg-gray-950/80 rounded-lg border border-gray-700 text-sm text-gray-300">
+                <strong class="text-white block mb-2">The Next Development Step:</strong>
+                To make the UI "Real", we need to install the ClickHouse Client in Next.js, swap those fake arrays (`let mockData = [...]`) out for real SQL queries, and stream the resulting math back to the dashboard ECharts components.
+            </div>
+        </div>
+    </div>
+
+</div>
+
+</body>
+</html>

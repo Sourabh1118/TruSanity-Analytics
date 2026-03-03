@@ -1,0 +1,125 @@
+version: "3.8"
+
+services:
+  # -------------
+  # Storage Layer
+  # -------------
+  postgres:
+    image: postgres:16-alpine
+    restart: always
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-netrasecret}
+      POSTGRES_DB: ${POSTGRES_DB:-netra_db}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - netra-net
+
+  redis:
+    image: redis:7-alpine
+    restart: always
+    command: redis-server --appendonly yes
+    volumes:
+      - redis_data:/data
+    networks:
+      - netra-net
+
+  zookeeper:
+    image: confluentinc/cp-zookeeper:7.5.0
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+    networks:
+      - netra-net
+
+  kafka:
+    image: confluentinc/cp-kafka:7.5.0
+    depends_on:
+      - zookeeper
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092,PLAINTEXT_HOST://localhost:29092
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+    networks:
+      - netra-net
+
+  clickhouse:
+    image: clickhouse/clickhouse-server:24.1-alpine
+    restart: always
+    ulimits:
+      nofile:
+        soft: 262144
+        hard: 262144
+    volumes:
+      - clickhouse_data:/var/lib/clickhouse
+    networks:
+      - netra-net
+    depends_on:
+      - kafka
+
+  # --------------------
+  # Application Services
+  # --------------------
+  api:
+    build:
+      context: .
+      dockerfile: apps/api/Dockerfile
+    restart: always
+    ports:
+      - "3001:3001"
+    environment:
+      - PORT=3001
+      - DATABASE_URL=postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-netrasecret}@postgres:5432/${POSTGRES_DB:-netra_db}
+      - KAFKA_BROKERS=kafka:9092
+      - REDIS_URL=redis://redis:6379
+      - CLICKHOUSE_HOST=http://clickhouse:8123
+      # --- Storefront Integration (via shared Docker network) ---
+      - STOREFRONT_URL=${STOREFRONT_URL:-http://storefront:3000}
+      - INTERNAL_API_SECRET=${INTERNAL_API_SECRET}
+    depends_on:
+      - postgres
+      - redis
+      - kafka
+      - clickhouse
+    networks:
+      - netra-net
+      - shared-trusanity-net
+
+  web:
+    build:
+      context: .
+      dockerfile: apps/web/Dockerfile
+    restart: always
+    ports:
+      - "3000:3000"
+    environment:
+      - NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL:-http://localhost:3001}
+      - DATABASE_URL=postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-netrasecret}@postgres:5432/${POSTGRES_DB:-netra_db}
+      - AUTH_SECRET=${AUTH_SECRET}
+      # Storefront URL used by middleware to redirect unauthenticated users
+      - NEXT_PUBLIC_STOREFRONT_URL=${NEXT_PUBLIC_STOREFRONT_URL:-https://trusanity.com}
+      - REDIS_URL=redis://redis:6379
+    depends_on:
+      - postgres
+      - api
+    networks:
+      - netra-net
+
+volumes:
+  postgres_data:
+  redis_data:
+  clickhouse_data:
+
+
+networks:
+  netra-net:
+    driver: bridge
+  # External network shared with the Storefront deployment.
+  # Must be created before starting either compose project:
+  #   docker network create shared-trusanity-net
+  shared-trusanity-net:
+    external: true

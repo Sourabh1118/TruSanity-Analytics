@@ -4,17 +4,31 @@ import { useState } from 'react'
 import Link from 'next/link'
 import { BarChart3, Eye, EyeOff, Github, Loader2 } from 'lucide-react'
 import { motion } from 'framer-motion'
+import { signIn } from 'next-auth/react'
+import { useRouter } from 'next/navigation'
 
 export default function LoginPage() {
     const [showPass, setShowPass] = useState(false)
     const [loading, setLoading] = useState(false)
     const [form, setForm] = useState({ email: '', password: '' })
 
+    const router = useRouter()
+
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault()
         setLoading(true)
-        // TODO: NextAuth signIn
-        setTimeout(() => setLoading(false), 1500)
+        const result = await signIn('credentials', {
+            email: form.email,
+            password: form.password,
+            redirect: false,
+        })
+
+        if (result?.error) {
+            setLoading(false)
+            alert("Invalid credentials") // Simple error handling for MVP
+        } else {
+            router.push('/dashboard')
+        }
     }
 
     return (
@@ -39,7 +53,7 @@ export default function LoginPage() {
                         <div className="w-10 h-10 rounded-xl gradient-brand flex items-center justify-center">
                             <BarChart3 className="w-6 h-6 text-white" />
                         </div>
-                        <span className="gradient-brand-text">Netra Analytics</span>
+                        <span className="font-brand text-3xl gradient-brand-text">trusanity</span>
                     </Link>
                     <h1 className="text-2xl font-bold text-text-primary mt-4">Welcome back</h1>
                     <p className="text-text-muted text-sm mt-1">Sign in to your workspace</p>

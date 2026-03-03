@@ -1,7 +1,14 @@
 export * from './button';
-export { clsx, type ClassValue } from 'clsx';
-export { twMerge } from 'tailwind-merge';
+export * from './card';
+export * from './input';
+export * from './label';
+export * from './badge';
+export * from './table';
+// Note: Radix dialog requires more complex portalling, stubbing simpler generic exports
 
-export function cn(...inputs: import('clsx').ClassValue[]) {
-    return import('tailwind-merge').then(m => m.twMerge(import('clsx').then(c => c.clsx(inputs))));
+import { clsx, type ClassValue } from 'clsx';
+import { twMerge } from 'tailwind-merge';
+
+export function cn(...inputs: ClassValue[]) {
+    return twMerge(clsx(inputs));
 }

@@ -1,0 +1,47 @@
+{% comment %}
+  Netra Analytics Theme App Extension Block
+  This injects the @netra/sdk-js script via Shopify's Online Store 2.0 App Blocks.
+{% endcomment %}
+
+{% if block.settings.api_key != blank %}
+<!-- Netra Analytics Auto-Capture -->
+<script>
+  (function(n,e,t,r,a){
+    n.Netra=n.Netra||function(){(n.Netra.q=n.Netra.q||[]).push(arguments)};
+    var s=e.createElement(t);s.async=1;s.src=r;
+    var c=e.getElementsByTagName(t)[0];c.parentNode.insertBefore(s,c);
+  })(window,document,'script','{{ block.settings.ingest_url | default: "https://api.netra.com" }}/js/sdk.js');
+
+  Netra('init', '{{ block.settings.api_key | escape }}', { 
+    apiHost: '{{ block.settings.ingest_url | default: "https://api.netra.com" }}' 
+  });
+  
+  {% if customer %}
+    // Identify logged-in Shopify customer
+    // We only hash the ID for privacy tracking across devices
+    Netra('identify', 'shopify_cus_{{ customer.id | sha256 }}');
+  {% endif %}
+</script>
+{% endif %}
+
+{% schema %}
+{
+  "name": "Netra Analytics Tracker",
+  "target": "head",
+  "settings": [
+    {
+      "type": "text",
+      "id": "api_key",
+      "label": "Project API Key",
+      "info": "Find this in your Netra Analytics Project Settings"
+    },
+    {
+      "type": "text",
+      "id": "ingest_url",
+      "label": "Ingest URL (Self-Hosted Only)",
+      "default": "https://api.netra.com",
+      "info": "Change only if you are self-hosting Netra Analytics"
+    }
+  ]
+}
+{% endschema %}

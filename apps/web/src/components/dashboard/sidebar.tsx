@@ -9,7 +9,8 @@ import {
     ChevronDown,
     Cog,
     FileText,
-    Funnel,
+    BookOpenText,
+    Filter,
     Globe,
     LayoutDashboard,
     MousePointerClick,
@@ -25,37 +26,37 @@ const navSections = [
         label: 'Overview',
         items: [
             { href: '/dashboard', icon: LayoutDashboard, label: 'Overview' },
-            { href: '/dashboard/realtime', icon: Activity, label: 'Real-Time' },
+            { href: '/dashboard/realtime', icon: Activity, label: 'Live Stream' },
         ],
     },
     {
         label: 'Analytics',
         items: [
             { href: '/dashboard/analytics', icon: BarChart3, label: 'Traffic & Pages' },
-            { href: '/dashboard/audience', icon: Users, label: 'Audience' },
-            { href: '/dashboard/acquisition', icon: Globe, label: 'Acquisition' },
+            { href: '/dashboard/funnels', icon: Filter, label: 'Funnel Analysis' },
+            { href: '/dashboard/retention', icon: Zap, label: 'Cohort Retention' },
         ],
     },
     {
-        label: 'Behavior',
+        label: 'Events & Tools',
         items: [
-            { href: '/dashboard/funnels', icon: Funnel, label: 'Funnels' },
-            { href: '/dashboard/events', icon: MousePointerClick, label: 'Events' },
-            { href: '/dashboard/retention', icon: Zap, label: 'Retention' },
+            { href: '/dashboard/events', icon: MousePointerClick, label: 'Event Explorer' },
+            { href: '/dashboard/tagger', icon: Globe, label: 'Visual Tagger' },
+            { href: '/dashboard/flags', icon: Cog, label: 'Feature Flags' },
         ],
     },
     {
-        label: 'Reports',
+        label: 'Reports & Alerts',
         items: [
-            { href: '/dashboard/mobile', icon: Smartphone, label: 'Mobile & Games' },
-            { href: '/dashboard/reports', icon: FileText, label: 'Reports' },
-            { href: '/dashboard/alerts', icon: Bell, label: 'Alerts' },
+            { href: '/dashboard/reports', icon: FileText, label: 'Scheduled Reports' },
+            { href: '/dashboard/alerts', icon: Bell, label: 'Active Alerts' },
         ],
     },
     {
-        label: 'Settings',
+        label: 'Configuration',
         items: [
-            { href: '/dashboard/settings', icon: Cog, label: 'Settings' },
+            { href: '/dashboard/settings', icon: Cog, label: 'Project Settings' },
+            { href: '/dashboard/docs', icon: BookOpenText, label: 'API Documentation' },
         ],
     },
 ]
@@ -71,7 +72,7 @@ export function DashboardSidebar() {
                     <div className="w-7 h-7 rounded-lg gradient-brand flex items-center justify-center flex-shrink-0">
                         <BarChart3 className="w-4 h-4 text-white" />
                     </div>
-                    <span className="gradient-brand-text">Netra Analytics</span>
+                    <span className="font-brand text-2xl tracking-wide gradient-brand-text">trusanity</span>
                 </div>
 
                 {/* Project selector */}

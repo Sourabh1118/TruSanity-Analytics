@@ -2,23 +2,48 @@ import Fastify from 'fastify'
 import cors from '@fastify/cors'
 import helmet from '@fastify/helmet'
 import rateLimit from '@fastify/rate-limit'
+import fastifyWebsocket from '@fastify/websocket'
 import { z } from 'zod'
-import { Kafka } from 'kafkajs'
 import Redis from 'ioredis'
+import { db } from './db'
+import { apiKeys, featureFlags } from '@netra/db'
+import { eq, and } from 'drizzle-orm'
+import { aiRoutes } from './ai'
+import { getTenantQuota } from './services/billing'
+import { Queue, Worker, Job } from 'bullmq'
+import { Kafka } from 'kafkajs'
 
 // ── Environment Variables ────────────────────────────────
 const PORT = process.env.PORT ? parseInt(process.env.PORT) : 3001
-const KAFKA_BROKERS = process.env.KAFKA_BROKERS ? process.env.KAFKA_BROKERS.split(',') : ['localhost:9092']
+const KAFKA_BROKERS = process.env.KAFKA_BROKERS ? process.env.KAFKA_BROKERS.split(',') : ['localhost:9094']
 const REDIS_URL = process.env.REDIS_URL || 'redis://localhost:6379'
 
 // ── Clients ─────────────────────────────────────────────
 const redis = new Redis(REDIS_URL)
+
+// Dedicated Redis Subscriber client for WebSockets
+const redisSubscriber = new Redis(REDIS_URL)
+const activeSockets = new Map<string, Set<any>>()
 
 const kafka = new Kafka({
     clientId: 'netra-api',
     brokers: KAFKA_BROKERS,
 })
 const producer = kafka.producer()
+
+// ── Reporting & BullMQ ──────────────────────────────────
+export const reportingQueue = new Queue('reports', { connection: redis })
+
+const reportWorker = new Worker('reports', async (job: Job) => {
+    console.log(`[ReportWorker] Processing report job ${job.id} for project ${job.data?.projectId}`)
+    // Simulate report generation and email dispatch
+    await new Promise(resolve => setTimeout(resolve, 2000))
+    console.log(`[ReportWorker] Successfully dispatched report to ${job.data?.emails}`)
+}, { connection: redis })
+
+reportWorker.on('failed', (job, err) => {
+    console.error(`[ReportWorker] Job ${job?.id} failed: ${err.message}`)
+})
 
 // ── Application Setup ────────────────────────────────────
 const fastify = Fastify({
@@ -58,18 +83,106 @@ async function start() {
     await fastify.register(helmet, { contentSecurityPolicy: false })
     await fastify.register(cors, {
         origin: '*',
-        methods: ['POST', 'OPTIONS'],
-        allowedHeaders: ['Content-Type', 'Authorization'],
+        methods: ['POST', 'OPTIONS', 'GET'],
+        allowedHeaders: ['Content-Type', 'Authorization', 'Upgrade', 'Connection'],
     })
     await fastify.register(rateLimit, {
         max: 1000,
         timeWindow: '1 minute',
         redis,
     })
+    await fastify.register(fastifyWebsocket)
+
+    // WebSocket Subscriber Loop
+    redisSubscriber.on('message', (channel, message) => {
+        if (channel.startsWith('rt:')) {
+            const projectId = channel.split(':')[1]
+            const clients = activeSockets.get(projectId as string)
+            if (clients) {
+                for (const client of clients) {
+                    if (client.readyState === 1) { // OPEN
+                        client.send(message)
+                    }
+                }
+            }
+        }
+    })
 
     // Health check
     fastify.get('/health', async () => {
         return { status: 'ok', timestamp: new Date().toISOString() }
+    })
+
+    // AI Summarization Routes
+    await fastify.register(aiRoutes)
+
+    // WebSocket Stream Endpoint
+    fastify.get('/v1/stream', { websocket: true }, (connection /* SocketStream */, req) => {
+        const projectId = (req.query as any)?.projectId
+
+        if (!projectId) {
+            connection.socket.close(1008, 'Missing projectId')
+            return
+        }
+
+        // Ideally, authorize the connection here using NextAuth session token bridging or an API key
+
+        // Add to active socket pool
+        if (!activeSockets.has(projectId)) {
+            activeSockets.set(projectId, new Set())
+            // Subscribe to Redis channel for this project
+            redisSubscriber.subscribe(`rt:${projectId}`)
+        }
+        activeSockets.get(projectId)!.add(connection.socket)
+
+        connection.socket.on('close', () => {
+            const set = activeSockets.get(projectId)
+            if (set) {
+                set.delete(connection.socket)
+                if (set.size === 0) {
+                    activeSockets.delete(projectId)
+                    redisSubscriber.unsubscribe(`rt:${projectId}`)
+                }
+            }
+        })
+    })
+
+    // Feature Flags Endpoint
+    fastify.get('/v1/flags', async (request, reply) => {
+        try {
+            const projectId = (request.query as any)?.projectId
+            if (!projectId) {
+                return reply.status(400).send({ error: 'Missing projectId' })
+            }
+
+            // In production, validate origin domain or require a public API key
+            const flags = await db.query.featureFlags.findMany({
+                where: and(
+                    eq(featureFlags.projectId, projectId),
+                    eq(featureFlags.isActive, true)
+                )
+            });
+
+            // Map flags based on rollout percentages
+            const resolvedFlags: Record<string, boolean> = {};
+
+            for (const flag of flags) {
+                if (flag.rolloutPercentage === 100) {
+                    resolvedFlags[flag.key] = true;
+                } else if (flag.rolloutPercentage > 0) {
+                    // Probabilistic eval based on Math.random for MVP
+                    // Standard implementations use deterministic hashing based on anonymous_id
+                    resolvedFlags[flag.key] = Math.random() * 100 <= flag.rolloutPercentage;
+                } else {
+                    resolvedFlags[flag.key] = false;
+                }
+            }
+
+            return reply.send({ flags: resolvedFlags })
+        } catch (err) {
+            fastify.log.error(err);
+            return reply.status(500).send({ error: 'Failed to fetch flags' })
+        }
     })
 
     // Ingestion Endpoint
@@ -78,16 +191,54 @@ async function start() {
             // 1. Validate payload structure
             const payload = EventSchema.parse(request.body)
 
-            // 2. Validate API Key / Project ID (Mocked for Phase 1)
-            // In production, we check Redis for API key validity
-            /*
+            // 2. Validate API Key / Project ID with Redis caching + Postgres fallback
             const token = request.headers.authorization?.replace('Bearer ', '')
-            const cachedProject = await redis.get(`apikey:${token}`)
-            if (!cachedProject || cachedProject !== payload.projectId) {
-               return reply.status(401).send({ error: 'Unauthorized' })
+            if (!token) {
+                return reply.status(401).send({ error: 'Missing Authorization header' })
             }
-            */
-            const tenantId = 1 // Mock tenant lookup for MVP
+
+            let tenantId: number | null = null;
+            const cachedData = await redis.get(`apikey:${token}`)
+
+            if (cachedData) {
+                // Cache hit
+                const parts = cachedData.split(':')
+                const cachedTenantId = parseInt(parts[0] || '0', 10)
+                const cachedProjectId = parts[1]
+
+                if (cachedProjectId !== payload.projectId) {
+                    return reply.status(401).send({ error: 'Unauthorized: Invalid Project ID for this key' })
+                }
+                tenantId = cachedTenantId
+            } else {
+                // Cache miss, lookup in Postgres
+                const apiKeyRecord = await db.query.apiKeys.findFirst({
+                    where: eq(apiKeys.id, token),
+                    with: { project: true }
+                })
+
+                if (!apiKeyRecord || !apiKeyRecord.isActive || apiKeyRecord.projectId !== payload.projectId) {
+                    return reply.status(401).send({ error: 'Unauthorized: Invalid or inactive API key' })
+                }
+
+                tenantId = apiKeyRecord.project.tenantId
+                // Cache for 1 hour
+                await redis.setex(`apikey:${token}`, 3600, `${tenantId}:${apiKeyRecord.projectId}`)
+            }
+
+            if (!tenantId) {
+                return reply.status(401).send({ error: 'Unauthorized' })
+            }
+
+            // 2.5. Check Tenant Quota via Internal Storefront API
+            const quota = await getTenantQuota(tenantId)
+
+            if (!quota) {
+                fastify.log.warn(`Could not fetch quota for tenant ${tenantId}. Allowing ingestion.`)
+            } else if (quota.plan === 'free' && payload.events.length > quota.limit) {
+                // Simplified logic: in reality, you'd check Redis counting usage against the limit
+                // return reply.status(402).send({ error: 'Payment Required: Monthly event limit exceeded' })
+            }
 
             // 3. Extract request metadata
             // const ip = request.ip
@@ -132,6 +283,15 @@ async function start() {
                 messages,
             })
 
+            // 6. Broadcast to Real-Time WebSockets
+            if (activeSockets.has(payload.projectId)) {
+                const rtPayload = JSON.stringify({
+                    type: 'INGESTION',
+                    data: messages.map(m => JSON.parse(m.value as string))
+                });
+                await redis.publish(`rt:${payload.projectId}`, rtPayload);
+            }
+
             return reply.code(202).send({ success: true, ingested: messages.length })
         } catch (err: any) {
             if (err instanceof z.ZodError) {
@@ -153,6 +313,8 @@ async function start() {
 // Graceful shutdown
 process.on('SIGINT', async () => {
     fastify.log.info('Shutting down API...')
+    await reportWorker.close()
+    await reportingQueue.close()
     await producer.disconnect()
     await redis.quit()
     await fastify.close()

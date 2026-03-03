@@ -4,6 +4,9 @@ import { useState } from 'react'
 import Link from 'next/link'
 import { BarChart3, CheckCircle2, Eye, EyeOff, Loader2 } from 'lucide-react'
 import { motion } from 'framer-motion'
+import { registerWorkspace } from '@/actions/auth'
+import { signIn } from 'next-auth/react'
+import { useRouter } from 'next/navigation'
 
 const perks = [
     'Free forever — 10K events/month',
@@ -18,6 +21,9 @@ export default function RegisterPage() {
     const [step, setStep] = useState<'account' | 'workspace'>('account')
     const [form, setForm] = useState({ name: '', email: '', password: '', workspace: '' })
 
+    const router = useRouter()
+    const [errorMsg, setErrorMsg] = useState('')
+
     const handleNext = (e: React.FormEvent) => {
         e.preventDefault()
         setStep('workspace')
@@ -26,7 +32,35 @@ export default function RegisterPage() {
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault()
         setLoading(true)
-        setTimeout(() => setLoading(false), 1500)
+        setErrorMsg('')
+
+        // 1. Create Workspace & User
+        const res = await registerWorkspace({
+            name: form.name,
+            email: form.email,
+            passwordHash: form.password, // Plain text for MVP
+            workspaceName: form.workspace,
+        })
+
+        if (res.error) {
+            setErrorMsg(res.error)
+            setLoading(false)
+            return
+        }
+
+        // 2. Automatically Log In
+        const loginRes = await signIn('credentials', {
+            email: form.email,
+            password: form.password,
+            redirect: false,
+        })
+
+        if (loginRes?.error) {
+            setErrorMsg("Registration successful but auto-login failed.")
+            setLoading(false)
+        } else {
+            router.push('/dashboard')
+        }
     }
 
     return (
@@ -45,7 +79,7 @@ export default function RegisterPage() {
                     <div className="w-10 h-10 rounded-xl gradient-brand flex items-center justify-center">
                         <BarChart3 className="w-6 h-6 text-white" />
                     </div>
-                    <span className="gradient-brand-text">Netra Analytics</span>
+                    <span className="font-brand text-3xl gradient-brand-text">trusanity</span>
                 </Link>
 
                 <div className="relative">
@@ -54,7 +88,7 @@ export default function RegisterPage() {
                         <span className="gradient-brand-text">your users today</span>
                     </h2>
                     <p className="text-text-secondary mb-8">
-                        Join thousands of teams who use Netra to make data-driven decisions faster.
+                        Join thousands of teams who use Trusanity to make data-driven decisions faster.
                     </p>
                     <div className="space-y-3">
                         {perks.map((perk) => (
@@ -66,7 +100,7 @@ export default function RegisterPage() {
                     </div>
                 </div>
 
-                <p className="relative text-xs text-text-muted">© 2026 Netra Analytics. Privacy-first platform.</p>
+                <p className="relative text-xs text-text-muted">© {new Date().getFullYear()} Trusanity. Privacy-first platform.</p>
             </div>
 
             {/* Right panel — form */}
@@ -82,7 +116,7 @@ export default function RegisterPage() {
                             <div className="w-8 h-8 rounded-lg gradient-brand flex items-center justify-center">
                                 <BarChart3 className="w-5 h-5 text-white" />
                             </div>
-                            <span className="gradient-brand-text">Netra Analytics</span>
+                            <span className="font-brand text-3xl gradient-brand-text">trusanity</span>
                         </Link>
                     </div>
 
@@ -91,8 +125,8 @@ export default function RegisterPage() {
                         {(['account', 'workspace'] as const).map((s, i) => (
                             <div key={s} className="flex items-center gap-2">
                                 <div className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold transition-all ${step === s ? 'gradient-brand text-white' :
-                                        (i === 0 && step === 'workspace') ? 'bg-success text-white' :
-                                            'bg-bg-elevated text-text-muted'
+                                    (i === 0 && step === 'workspace') ? 'bg-success text-white' :
+                                        'bg-bg-elevated text-text-muted'
                                     }`}>
                                     {i === 0 && step === 'workspace' ? '✓' : i + 1}
                                 </div>
@@ -181,7 +215,14 @@ export default function RegisterPage() {
                         ) : (
                             <>
                                 <h1 className="text-2xl font-bold text-text-primary mb-1">Name your workspace</h1>
-                                <p className="text-text-muted text-sm mb-6">This will be your team&apos;s home in Netra Analytics</p>
+                                <p className="text-text-muted text-sm mb-6">This will be your team&apos;s home in Trusanity</p>
+
+                                {errorMsg && (
+                                    <div className="mb-4 p-3 rounded-xl bg-red-500/10 border border-red-500/20 text-red-500 text-sm">
+                                        {errorMsg}
+                                    </div>
+                                )}
+
                                 <form onSubmit={handleSubmit} className="space-y-4">
                                     <div>
                                         <label className="block text-sm font-medium text-text-secondary mb-1.5">Workspace name</label>
@@ -193,7 +234,7 @@ export default function RegisterPage() {
                                  focus:outline-none focus:border-brand-500 focus:ring-1 focus:ring-brand-500/30 transition-all" />
                                         {form.workspace && (
                                             <p className="text-xs text-text-muted mt-1">
-                                                URL: app.netraanalytics.com/<span className="text-brand-400">
+                                                URL: app.trusanity.com/<span className="text-brand-400">
                                                     {form.workspace.toLowerCase().replace(/\s+/g, '-')}
                                                 </span>
                                             </p>
