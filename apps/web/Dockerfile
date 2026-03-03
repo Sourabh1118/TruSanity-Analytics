@@ -27,7 +27,8 @@ ENV DATABASE_URL=postgresql://placeholder:placeholder@localhost:5432/placeholder
 ENV AUTH_SECRET=build-time-placeholder-secret-not-used-at-runtime
 ENV NEXT_PUBLIC_API_URL=http://localhost:3001
 
-RUN cd apps/web && pnpm build
+# Build from root using workspace filter so pnpm finds hoisted binaries (e.g. next)
+RUN pnpm --filter @netra/web build
 
 # ── runner: minimal production image ────────────────────────────────────
 FROM node:20-alpine AS runner

@@ -22,8 +22,9 @@ COPY --from=deps /app/node_modules ./node_modules
 COPY --from=deps /app/packages ./packages
 COPY . .
 # Build shared packages first, then the API
-RUN cd packages/db && pnpm build 2>/dev/null || true
-RUN cd apps/api && pnpm build
+# Build from root using workspace filter so pnpm finds hoisted binaries
+RUN pnpm --filter @netra/db build 2>/dev/null || true
+RUN pnpm --filter @netra/api build
 
 # ── runner: minimal production image ────────────────────────────────────
 FROM node:20-alpine AS runner
