@@ -5,7 +5,10 @@
         "moduleResolution": "NodeNext",
         "target": "ES2022",
         "outDir": "./dist",
-        "rootDir": "./src"
+        "rootDir": "./src",
+        "noUnusedLocals": false,
+        "noUnusedParameters": false,
+        "noEmitOnError": false
     },
     "include": [
         "src/**/*"

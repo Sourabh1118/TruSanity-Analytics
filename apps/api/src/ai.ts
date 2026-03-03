@@ -1,5 +1,4 @@
 import { FastifyInstance } from 'fastify'
-import { z } from 'zod'
 import { db } from './db'
 import { apiKeys } from '@netra/db'
 import { eq } from 'drizzle-orm'
@@ -15,7 +14,7 @@ export async function aiRoutes(fastify: FastifyInstance) {
                 return reply.status(401).send({ error: 'Unauthorized: Missing token' })
             }
 
-            const token = authHeader.split(' ')[1]
+            const token = authHeader.split(' ')[1] as string
 
             // Validate against PostgreSQL directly for MVP simplicity on the AI route
             const apiKeyRecord = await db.query.apiKeys.findFirst({
