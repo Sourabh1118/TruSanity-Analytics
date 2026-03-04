@@ -3,23 +3,14 @@
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import {
-    Activity,
-    BarChart3,
-    Bell,
-    ChevronDown,
-    Cog,
-    FileText,
-    BookOpenText,
-    Filter,
-    Globe,
-    LayoutDashboard,
-    MousePointerClick,
-    Plus,
-    Smartphone,
-    Users,
-    Zap,
+    Activity, BarChart3, Bell, ChevronDown, Cog, FileText,
+    BookOpenText, Filter, Globe, LayoutDashboard, MousePointerClick,
+    Smartphone, Users, Zap,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
+import { useEffect, useState } from 'react'
+import { getTenantProjects } from '@/actions/projects'
+import CreateProjectModal from './CreateProjectModal'
 
 const navSections = [
     {
@@ -63,6 +54,21 @@ const navSections = [
 
 export function DashboardSidebar() {
     const pathname = usePathname()
+    const [projects, setProjects] = useState<Array<{ id: string; name: string }>>([])
+    const [activeProject, setActiveProject] = useState<{ id: string; name: string } | null>(null)
+    const [showProjectList, setShowProjectList] = useState(false)
+
+    const loadProjects = async () => {
+        try {
+            const all = await getTenantProjects()
+            setProjects(all)
+            if (all.length > 0 && !activeProject) {
+                setActiveProject({ id: all[0].id, name: all[0].name })
+            }
+        } catch { }
+    }
+
+    useEffect(() => { loadProjects() }, [])
 
     return (
         <aside className="w-64 h-full flex flex-col bg-bg-surface border-r border-border flex-shrink-0">
@@ -76,21 +82,50 @@ export function DashboardSidebar() {
                 </div>
 
                 {/* Project selector */}
-                <button className="w-full flex items-center justify-between px-3 py-2 rounded-lg 
-                           bg-bg-elevated hover:bg-bg-overlay transition-colors text-sm border border-border">
-                    <div className="flex items-center gap-2 min-w-0">
-                        <div className="w-5 h-5 rounded-md bg-brand-500/20 flex items-center justify-center flex-shrink-0">
-                            <Globe className="w-3 h-3 text-brand-400" />
+                <div className="relative">
+                    <button
+                        onClick={() => setShowProjectList(!showProjectList)}
+                        className="w-full flex items-center justify-between px-3 py-2 rounded-lg
+                                   bg-bg-elevated hover:bg-bg-overlay transition-colors text-sm border border-border"
+                    >
+                        <div className="flex items-center gap-2 min-w-0">
+                            <div className="w-5 h-5 rounded-md bg-brand-500/20 flex items-center justify-center flex-shrink-0">
+                                <Globe className="w-3 h-3 text-brand-400" />
+                            </div>
+                            <span className="text-text-primary truncate">
+                                {activeProject?.name ?? (projects.length === 0 ? 'No projects yet' : 'Select project')}
+                            </span>
                         </div>
-                        <span className="text-text-primary truncate">My Website</span>
-                    </div>
-                    <ChevronDown className="w-4 h-4 text-text-muted flex-shrink-0" />
-                </button>
-                <button className="w-full flex items-center gap-2 px-3 py-1.5 mt-1 rounded-lg 
-                           text-xs text-text-muted hover:text-text-secondary hover:bg-bg-elevated transition-colors">
-                    <Plus className="w-3.5 h-3.5" />
-                    Add project
-                </button>
+                        <ChevronDown className={cn('w-4 h-4 text-text-muted flex-shrink-0 transition-transform', showProjectList && 'rotate-180')} />
+                    </button>
+
+                    {/* Dropdown list */}
+                    {showProjectList && projects.length > 0 && (
+                        <div className="absolute top-full mt-1 left-0 right-0 z-20 glass border border-border rounded-lg shadow-xl overflow-hidden">
+                            {projects.map(p => (
+                                <button
+                                    key={p.id}
+                                    onClick={() => { setActiveProject(p); setShowProjectList(false); }}
+                                    className={cn(
+                                        'w-full flex items-center gap-2 px-3 py-2.5 text-sm transition-colors text-left',
+                                        activeProject?.id === p.id
+                                            ? 'bg-brand-500/15 text-brand-400'
+                                            : 'text-text-secondary hover:bg-bg-elevated hover:text-text-primary'
+                                    )}
+                                >
+                                    <Globe className="w-3 h-3 flex-shrink-0" />
+                                    <span className="truncate">{p.name}</span>
+                                </button>
+                            ))}
+                        </div>
+                    )}
+                </div>
+
+                {/* Add project modal button */}
+                <CreateProjectModal onCreated={(id, name) => {
+                    setActiveProject({ id, name });
+                    loadProjects();
+                }} />
             </div>
 
             {/* Navigation */}
@@ -116,7 +151,7 @@ export function DashboardSidebar() {
                                     >
                                         <item.icon className={cn('w-4 h-4 flex-shrink-0', active ? 'text-brand-400' : 'text-text-muted')} />
                                         {item.label}
-                                        {item.label === 'Real-Time' && (
+                                        {item.label === 'Live Stream' && (
                                             <span className="ml-auto w-2 h-2 rounded-full bg-success animate-pulse" />
                                         )}
                                     </Link>
@@ -127,17 +162,18 @@ export function DashboardSidebar() {
                 ))}
             </nav>
 
-            {/* Usage meter */}
+            {/* Usage meter — real project count */}
             <div className="p-4 border-t border-border">
                 <div className="glass rounded-xl p-3">
                     <div className="flex justify-between items-center mb-2">
-                        <span className="text-xs text-text-secondary">Monthly Events</span>
-                        <span className="text-xs font-medium text-text-primary">6,241 / 10K</span>
+                        <span className="text-xs text-text-secondary">Projects</span>
+                        <span className="text-xs font-medium text-text-primary">{projects.length}</span>
                     </div>
-                    <div className="h-1.5 rounded-full bg-bg-overlay overflow-hidden">
-                        <div className="h-full rounded-full gradient-brand transition-all" style={{ width: '62%' }} />
-                    </div>
-                    <p className="text-[10px] text-text-muted mt-1.5">62% used · Free plan</p>
+                    <p className="text-[10px] text-text-muted">
+                        {projects.length === 0
+                            ? 'Add your first project above'
+                            : `${projects.length} active tracking project${projects.length !== 1 ? 's' : ''}`}
+                    </p>
                 </div>
             </div>
         </aside>
