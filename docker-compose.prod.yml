@@ -103,9 +103,15 @@ services:
       # Storefront URL used by middleware to redirect unauthenticated users
       - NEXT_PUBLIC_STOREFRONT_URL=${NEXT_PUBLIC_STOREFRONT_URL:-https://trusanity.com}
       - REDIS_URL=redis://redis:6379
+      # ClickHouse — must use Docker service name for server-side queries
+      - CLICKHOUSE_URL=http://clickhouse:8123
+      - CLICKHOUSE_USER=${CLICKHOUSE_USER:-default}
+      - CLICKHOUSE_PASSWORD=${CLICKHOUSE_PASSWORD:-}
+      - CLICKHOUSE_DB=${CLICKHOUSE_DB:-netra}
     depends_on:
       - postgres
       - api
+      - clickhouse
     networks:
       - netra-net
 
