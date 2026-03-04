@@ -5,21 +5,13 @@ import { db } from '@/lib/db';
 import { projects, apiKeys, tenantMembers } from '@netra/db/src/schema';
 import { eq, desc, and } from 'drizzle-orm';
 import crypto from 'crypto';
+import { getActiveTenantIdOrProvision } from './provisioning';
 
+/** Delegates to the shared auto-provisioning utility */
 async function getActiveTenantId(): Promise<number | null> {
-    const session = await auth();
-    if (!session?.user?.id) return null;
-    try {
-        const memberships = await db.select()
-            .from(tenantMembers)
-            .where(eq(tenantMembers.userId, session.user.id));
-        if (!memberships || memberships.length === 0) return null;
-        return memberships[0].tenantId;
-    } catch (e) {
-        console.error('getActiveTenantId failed:', e);
-        return null;
-    }
+    return getActiveTenantIdOrProvision();
 }
+
 
 /** Returns all projects and their associated API Keys for the active tenant */
 export async function getTenantProjects() {

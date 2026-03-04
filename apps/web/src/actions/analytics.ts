@@ -5,31 +5,14 @@ import { auth } from '@/auth'
 import { db } from '@/lib/db'
 import { tenantMembers } from '@netra/db/src/schema'
 import { and, eq } from 'drizzle-orm'
-import { redirect } from 'next/navigation'
+import { getActiveTenantIdOrProvision } from './provisioning'
 
 /**
- * Validates the current session and retrieves the active Tenant ID.
- * Crucial for strict Multi-Tenant Data Isolation!
- */
-/**
- * Validates the current session and retrieves the active Tenant ID.
- * Returns null if not authenticated or no tenant found (caller decides what to do).
+ * Gets or auto-provisions the tenant ID for the current user.
+ * Uses provisioning.ts to create tenant on first SSO access.
  */
 async function getActiveTenantId(): Promise<number | null> {
-    const session = await auth();
-    if (!session?.user?.id) return null;
-
-    try {
-        const memberships = await db.select()
-            .from(tenantMembers)
-            .where(eq(tenantMembers.userId, session.user.id));
-
-        if (!memberships || memberships.length === 0) return null;
-        return memberships[0].tenantId;
-    } catch (e) {
-        console.error('getActiveTenantId failed:', e);
-        return null;
-    }
+    return getActiveTenantIdOrProvision();
 }
 
 
