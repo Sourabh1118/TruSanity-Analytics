@@ -28,9 +28,13 @@ export default auth((req) => {
     // This prevents redirect loops when the user has no tenant yet.
 
     // Strict RBAC for admin routes
-    if (isAdminRoute && isLoggedIn && req.auth?.user?.role !== 'SUPER_ADMIN') {
-        return Response.redirect(new URL('/dashboard', req.nextUrl));
+    if (isAdminRoute && isLoggedIn) {
+        const role = req.auth?.user?.role as string | undefined;
+        if (role !== 'SUPER_ADMIN' && role !== 'admin') {
+            return Response.redirect(new URL('/dashboard', req.nextUrl));
+        }
     }
+
 
     return null;
 });

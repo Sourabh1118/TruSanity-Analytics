@@ -5,14 +5,18 @@ import { db } from '@/lib/db';
 import { clickhouse } from '@/lib/clickhouse';
 import { subscriptions, billingEvents, tenants, users, tenantMembers, projects } from '@netra/db/src/schema';
 import { desc, eq, sql, count } from 'drizzle-orm';
+import { redirect } from 'next/navigation';
 
 /**
- * Validates the current session is an active Super Admin.
+ * Validates the current session has admin access.
+ * Accepts both 'SUPER_ADMIN' and 'admin' roles.
+ * Redirects to /dashboard instead of throwing to avoid server component crashes.
  */
 async function enforceSuperAdmin() {
     const session = await auth();
-    if (!session || (session.user as any).role !== 'SUPER_ADMIN') {
-        throw new Error('Unauthorized Access: Minimum role SUPER_ADMIN required');
+    const role = (session?.user as any)?.role as string | undefined;
+    if (!session || !role || (role !== 'SUPER_ADMIN' && role !== 'admin')) {
+        redirect('/dashboard');
     }
 }
 
