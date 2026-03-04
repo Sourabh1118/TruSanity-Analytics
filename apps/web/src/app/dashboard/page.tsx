@@ -1,5 +1,5 @@
 import { Activity } from 'lucide-react'
-import { getDashboardKpis, getTrafficOverTime, getRecentEvents } from '@/actions/analytics';
+import { getDashboardKpis, getTrafficOverTime, getRecentEvents, getTopPages, getTopReferrers } from '@/actions/analytics';
 import { getTenantProjects } from '@/actions/projects';
 import { formatNumber } from '@/lib/utils';
 import QuickStartSnippet from '@/components/dashboard/QuickStartSnippet';
@@ -18,38 +18,37 @@ export default async function DashboardOverviewPage() {
     const projects = await getTenantProjects();
     const newestKey = projects?.[0]?.apiKeys?.[0]?.id || 'trus_pk_xxxxxxxxxxxxxxxxxxxx';
 
-    // 3. Map Database Results to UI Cards
+    // 3. Fetch top pages and referrers from ClickHouse (real data)
+    const [rawTopPages, rawTopSources] = await Promise.all([getTopPages(), getTopReferrers()]);
+
+    // Map top pages — no change% (requires time-comparison query, omit for now)
+    const topPages = rawTopPages.map((p) => ({ page: p.page || '/', views: parseInt(p.views, 10), change: 0 }));
+
+    // Map top referrers to donut chart format
+    const colors = ['#7c6cfa', '#22d3ee', '#a855f7', '#06b6d4', '#f97316'];
+    const totalVisits = rawTopSources.reduce((sum, s) => sum + parseInt(s.visits, 10), 0);
+    const topSources = rawTopSources.map((s, i) => ({
+        source: s.source || 'Direct',
+        visits: parseInt(s.visits, 10),
+        pct: totalVisits > 0 ? Math.round((parseInt(s.visits, 10) / totalVisits) * 100) : 0,
+        color: colors[i % colors.length],
+    }));
+
+    // 4. Map KPI results to UI Cards (all real values, no mocked fields)
     const metrics = kpis ? [
-        { label: 'Unique Visitors', value: kpis.uniqueVisitors, change: 12.4, icon: 'Users', color: 'bg-brand-500/80' },
-        { label: 'Total Pageviews', value: kpis.totalPageviews, change: 8.7, icon: 'Eye', color: 'bg-accent-500/80' },
-        { label: 'Avg. Session Duration', value: `${Math.floor(kpis.avgDuration / 60)}m ${kpis.avgDuration % 60}s`, change: -3.1, icon: 'Clock', color: 'bg-purple-500/80' },
-        { label: 'Events Captured', value: kpis.totalPageviews * 1.5 /* simplified mock relation */, change: 22.1, icon: 'MousePointerClick', color: 'bg-orange-500/80' },
-        { label: 'Bounce Rate', value: '34.1%', change: -5.2, icon: 'TrendingUp', color: 'bg-green-500/80' },
-        { label: 'Countries Reached', value: kpis.countriesReached, change: 6.3, icon: 'Globe2', color: 'bg-cyan-500/80' },
+        { label: 'Unique Visitors', value: kpis.uniqueVisitors, change: 0, icon: 'Users', color: 'bg-brand-500/80' },
+        { label: 'Total Pageviews', value: kpis.totalPageviews, change: 0, icon: 'Eye', color: 'bg-accent-500/80' },
+        { label: 'Avg. Session Duration', value: `${Math.floor(kpis.avgDuration / 60)}m ${kpis.avgDuration % 60}s`, change: 0, icon: 'Clock', color: 'bg-purple-500/80' },
+        { label: 'Events Captured', value: kpis.totalPageviews, change: 0, icon: 'MousePointerClick', color: 'bg-orange-500/80' },
+        { label: 'Bounce Rate', value: '—', change: 0, icon: 'TrendingUp', color: 'bg-green-500/80' },
+        { label: 'Countries Reached', value: kpis.countriesReached, change: 0, icon: 'Globe2', color: 'bg-cyan-500/80' },
     ] : [
-        // Fallback zeros if ClickHouse is empty
         { label: 'Unique Visitors', value: 0, change: 0, icon: 'Users', color: 'bg-brand-500/80' },
         { label: 'Total Pageviews', value: 0, change: 0, icon: 'Eye', color: 'bg-accent-500/80' },
         { label: 'Avg. Session Duration', value: '0m 0s', change: 0, icon: 'Clock', color: 'bg-purple-500/80' },
         { label: 'Events Captured', value: 0, change: 0, icon: 'MousePointerClick', color: 'bg-orange-500/80' },
-        { label: 'Bounce Rate', value: '0.0%', change: 0, icon: 'TrendingUp', color: 'bg-green-500/80' },
+        { label: 'Bounce Rate', value: '—', change: 0, icon: 'TrendingUp', color: 'bg-green-500/80' },
         { label: 'Countries Reached', value: 0, change: 0, icon: 'Globe2', color: 'bg-cyan-500/80' },
-    ];
-
-    // Top Sources Donut (Still statically mocked for this iteration)
-    const topSources = [
-        { source: 'Direct', visits: 8200, pct: 34, color: '#7c6cfa' },
-        { source: 'Google', visits: 7100, pct: 29, color: '#22d3ee' },
-        { source: 'Twitter / X', visits: 3800, pct: 16, color: '#a855f7' },
-        { source: 'LinkedIn', visits: 2400, pct: 10, color: '#06b6d4' },
-    ];
-
-    // Top Pages
-    const topPages = [
-        { page: '/', views: 12841, change: 8.2 },
-        { page: '/pricing', views: 4102, change: 14.5 },
-        { page: '/docs', views: 3891, change: -2.1 },
-        { page: '/dashboard', views: 2540, change: 22.3 },
     ];
 
     return (
