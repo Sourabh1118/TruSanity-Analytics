@@ -6,6 +6,18 @@ import type { NextAuthConfig } from 'next-auth';
 const authConfig: NextAuthConfig = {
     trustHost: true,
     providers: [],
+    cookies: {
+        sessionToken: {
+            name: '__Secure-authjs.session-token',
+            options: {
+                domain: process.env.COOKIE_DOMAIN || '.trusanity.com',
+                httpOnly: true,
+                sameSite: 'lax' as const,
+                path: '/',
+                secure: true,
+            },
+        },
+    },
     callbacks: {
         async jwt({ token, user }) {
             if (user) {
