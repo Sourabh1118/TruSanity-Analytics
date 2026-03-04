@@ -12,10 +12,14 @@ export async function fetchAiInsights() {
         });
 
         if (!activeProject) {
-            throw new Error("No active public API key found.");
+            return []; // No project yet — return empty gracefully
         }
 
-        const response = await fetch('http://localhost:3001/v1/ai/insights', {
+        // Use INTERNAL_API_URL (Docker service name) for server-to-server calls,
+        // falling back to NEXT_PUBLIC_API_URL for local dev
+        const apiUrl = process.env.INTERNAL_API_URL || process.env.NEXT_PUBLIC_API_URL || 'http://api:3001';
+
+        const response = await fetch(`${apiUrl}/v1/ai/insights`, {
             headers: {
                 Authorization: `Bearer ${activeProject.id}`,
             },
@@ -23,13 +27,14 @@ export async function fetchAiInsights() {
         });
 
         if (!response.ok) {
-            throw new Error('Failed to generate insights');
+            console.error('AI insights API responded with', response.status);
+            return [];
         }
 
         const data = await response.json();
         return data.insights || [];
     } catch (error) {
         console.error("fetchAiInsights error", error);
-        throw new Error("Could not connect to the AI analysis engine.");
+        return []; // Gracefully return empty instead of throwing a 500
     }
 }
