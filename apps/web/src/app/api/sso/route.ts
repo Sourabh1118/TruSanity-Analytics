@@ -1,5 +1,6 @@
 import { auth } from '@/auth'
 import { NextResponse } from 'next/server'
+import { NextRequest } from 'next/server'
 
 /**
  * SSO Handoff Endpoint
@@ -9,14 +10,19 @@ import { NextResponse } from 'next/server'
  * JWT cookie is automatically validated by this NextAuth instance.
  *
  * If the user has a valid session → redirect to /dashboard
- * Otherwise → redirect to /login
+ * Otherwise → redirect to Storefront /login
  */
-export async function GET() {
+export async function GET(req: NextRequest) {
     const session = await auth()
 
+    // Use the request origin as the base URL (works behind any proxy/domain)
+    const appUrl = req.nextUrl.origin
+
+    const storefrontUrl = process.env.NEXT_PUBLIC_STOREFRONT_URL || 'https://trusanity.com'
+
     if (!session?.user) {
-        return NextResponse.redirect(new URL('/login', process.env.NEXTAUTH_URL || 'http://localhost:3000'))
+        return NextResponse.redirect(new URL('/login', storefrontUrl))
     }
 
-    return NextResponse.redirect(new URL('/dashboard', process.env.NEXTAUTH_URL || 'http://localhost:3000'))
+    return NextResponse.redirect(new URL('/dashboard', appUrl))
 }

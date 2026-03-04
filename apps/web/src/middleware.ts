@@ -14,7 +14,7 @@ export default auth((req) => {
     }
 
     if (!isLoggedIn && !isPublicRoute) {
-        const storefrontUrl = process.env.NEXT_PUBLIC_STOREFRONT_URL || 'http://localhost:3002';
+        const storefrontUrl = process.env.NEXT_PUBLIC_STOREFRONT_URL || 'https://trusanity.com';
         return Response.redirect(new URL('/login', storefrontUrl));
     }
 
@@ -25,7 +25,7 @@ export default auth((req) => {
     // Strict RBAC: Intercept any /admin request and block it if the user is not a SUPER_ADMIN
     if (isAdminRoute) {
         if (!isLoggedIn) {
-            const storefrontUrl = process.env.NEXT_PUBLIC_STOREFRONT_URL || 'http://localhost:3002';
+            const storefrontUrl = process.env.NEXT_PUBLIC_STOREFRONT_URL || 'https://trusanity.com';
             return Response.redirect(new URL('/login', storefrontUrl));
         }
 

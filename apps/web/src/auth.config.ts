@@ -4,6 +4,7 @@ import type { NextAuthConfig } from 'next-auth';
 // The primary authentication file (auth.ts) imports this and merges it with Node-dependent 
 // adapters (like Drizzle/Postgres) that cannot run seamlessly on Vercel Edge Runtime.
 const authConfig: NextAuthConfig = {
+    trustHost: true,
     providers: [],
     callbacks: {
         async jwt({ token, user }) {
