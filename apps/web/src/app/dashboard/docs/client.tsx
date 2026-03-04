@@ -30,7 +30,7 @@ export default function ApiDocsClient({ newestKey }: { newestKey: string }) {
     ];
 
     const generateHtmlSnippet = () => `<!-- Trusanity Analytics SDK -->
-<script defer src="https://cdn.trusanity.com/track.js" data-site-id="${newestKey}"></script>`;
+<script defer src="${process.env.NEXT_PUBLIC_API_URL || 'https://api.trusanity.com'}/track.js" data-site-id="${newestKey}"></script>`;
 
     const generateReactSnippet = () => `// In your _app.tsx or root layout.tsx
 import Script from 'next/script';
@@ -40,7 +40,7 @@ export default function RootLayout({ children }) {
     <html lang="en">
       <head>
         <Script 
-          src="https://cdn.trusanity.com/track.js" 
+          src="${process.env.NEXT_PUBLIC_API_URL || 'https://api.trusanity.com'}/track.js" 
           strategy="afterInteractive"
           data-site-id="${newestKey}"
         />
@@ -53,7 +53,7 @@ export default function RootLayout({ children }) {
     const generateShopifySnippet = () => `{% comment %}
   Paste this inside your theme.liquid just before the closing </head> tag
 {% endcomment %}
-<script defer src="https://cdn.trusanity.com/track.js" data-site-id="${newestKey}"></script>`;
+<script defer src="${process.env.NEXT_PUBLIC_API_URL || 'https://api.trusanity.com'}/track.js" data-site-id="${newestKey}"></script>`;
 
     const generateEventHtml = () => `// Firing a Custom Event
 window.trusanity = window.trusanity || function(){(trusanity.q=trusanity.q||[]).push(arguments)};

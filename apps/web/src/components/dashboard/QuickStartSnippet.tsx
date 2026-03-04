@@ -6,7 +6,7 @@ import { Terminal, Copy, CheckCircle2 } from 'lucide-react';
 export default function QuickStartSnippet({ newestKey }: { newestKey: string }) {
     const [copied, setCopied] = useState(false);
 
-    const sdkSnippet = `<!-- Trusanity Analytics SDK -->\n<script defer src="https://cdn.trusanity.com/track.js" data-site-id="${newestKey}"></script>`;
+    const sdkSnippet = `<!-- Trusanity Analytics SDK -->\n<script defer src="${process.env.NEXT_PUBLIC_API_URL || 'https://api.trusanity.com'}/track.js" data-site-id="${newestKey}"></script>`;
 
     const handleCopy = () => {
         navigator.clipboard.writeText(sdkSnippet);
