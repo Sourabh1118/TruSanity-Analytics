@@ -1,0 +1,297 @@
+/* Trusanity Analytics — Admin Styles */
+:root {
+    --trus-brand: #7c6cfa;
+    --trus-cyan: #22d3ee;
+    --trus-ok: #22c55e;
+    --trus-warn: #f59e0b;
+    --trus-err: #ef4444;
+    --trus-bg: #f9fafb;
+    --trus-card: #ffffff;
+    --trus-border: #e5e7eb;
+    --trus-text: #111827;
+    --trus-muted: #6b7280;
+}
+
+.trus-wrap {
+    max-width: 860px;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+}
+
+/* Header */
+.trus-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin: 20px 0 24px;
+    padding: 16px 20px;
+    background: linear-gradient(135deg, #1e1b4b 0%, #0f172a 100%);
+    border-radius: 12px;
+    color: white;
+}
+
+.trus-logo {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 18px;
+    font-weight: 700;
+}
+
+.trus-link-btn {
+    color: white;
+    text-decoration: none;
+    font-size: 13px;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    padding: 6px 14px;
+    border-radius: 6px;
+    transition: background 0.2s;
+}
+
+.trus-link-btn:hover {
+    background: rgba(255, 255, 255, 0.15);
+    color: white;
+}
+
+/* Badges */
+.trus-badge {
+    font-size: 11px;
+    font-weight: 600;
+    padding: 3px 8px;
+    border-radius: 20px;
+    letter-spacing: 0.02em;
+}
+
+.trus-badge--ok {
+    background: rgba(34, 197, 94, 0.2);
+    color: #22c55e;
+}
+
+.trus-badge--warn {
+    background: rgba(245, 158, 11, 0.2);
+    color: #f59e0b;
+}
+
+.trus-badge--err {
+    background: rgba(239, 68, 68, 0.2);
+    color: #ef4444;
+}
+
+/* Cards */
+.trus-card {
+    background: var(--trus-card);
+    border: 1px solid var(--trus-border);
+    border-radius: 12px;
+    padding: 24px 28px;
+    margin-bottom: 20px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+}
+
+.trus-section-title {
+    margin: 0 0 6px;
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--trus-text);
+}
+
+.trus-desc {
+    margin: 0 0 18px;
+    color: var(--trus-muted);
+    font-size: 13px;
+}
+
+/* Table */
+.trus-table {
+    width: 100%;
+}
+
+.trus-table th {
+    width: 220px;
+    padding: 10px 0;
+    font-weight: 600;
+    font-size: 13px;
+    vertical-align: top;
+    padding-top: 14px;
+}
+
+.trus-table td {
+    padding: 8px 0;
+}
+
+.trus-table .description {
+    margin-top: 4px;
+    font-size: 12px;
+    color: var(--trus-muted);
+}
+
+.required {
+    color: var(--trus-err);
+}
+
+/* Input group */
+.trus-input-group {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+}
+
+.trus-mono {
+    font-family: 'SF Mono', 'Fira Code', monospace !important;
+    font-size: 13px !important;
+    letter-spacing: 0.02em;
+}
+
+/* Verify result */
+.trus-verify-msg {
+    margin-top: 6px;
+    font-size: 13px;
+    font-weight: 600;
+    min-height: 20px;
+}
+
+.trus-verify-msg.ok {
+    color: var(--trus-ok);
+}
+
+.trus-verify-msg.err {
+    color: var(--trus-err);
+}
+
+/* Snippet preview */
+.trus-snippet-preview {
+    margin-top: 16px;
+    background: #0f172a;
+    border-radius: 8px;
+    padding: 14px 16px;
+}
+
+.trus-snippet-preview p {
+    color: #94a3b8;
+    font-size: 12px;
+    margin: 0 0 6px;
+}
+
+.trus-snippet-preview code {
+    color: #34d399;
+    font-size: 12px;
+    font-family: 'SF Mono', monospace;
+    word-break: break-all;
+    white-space: pre-wrap;
+    display: block;
+}
+
+/* Toggle switch */
+.trus-toggle {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    cursor: pointer;
+}
+
+.trus-toggle input[type="checkbox"] {
+    position: absolute;
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.trus-toggle input[type="hidden"] {
+    display: none;
+}
+
+.trus-slider {
+    display: inline-block;
+    width: 40px;
+    height: 22px;
+    background: #d1d5db;
+    border-radius: 11px;
+    transition: background 0.2s;
+    flex-shrink: 0;
+    position: relative;
+}
+
+.trus-slider::after {
+    content: '';
+    position: absolute;
+    top: 3px;
+    left: 3px;
+    width: 16px;
+    height: 16px;
+    background: white;
+    border-radius: 50%;
+    transition: transform 0.2s;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+}
+
+.trus-toggle input[type="checkbox"]:checked~.trus-slider {
+    background: var(--trus-brand);
+}
+
+.trus-toggle input[type="checkbox"]:checked~.trus-slider::after {
+    transform: translateX(18px);
+}
+
+/* WooCommerce events grid */
+.trus-woo-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.trus-woo-event {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 12px 16px;
+    background: var(--trus-bg);
+    border: 1px solid var(--trus-border);
+    border-radius: 8px;
+}
+
+.trus-woo-icon {
+    font-size: 22px;
+    flex-shrink: 0;
+}
+
+.trus-woo-event strong {
+    font-size: 13px;
+    font-family: 'SF Mono', monospace;
+    color: var(--trus-brand);
+}
+
+.trus-woo-event p {
+    margin: 2px 0 0;
+    font-size: 12px;
+    color: var(--trus-muted);
+}
+
+/* Roles grid */
+.trus-roles-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.trus-role-check {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    padding: 5px 10px;
+    border: 1px solid var(--trus-border);
+    border-radius: 6px;
+    font-size: 13px;
+    cursor: pointer;
+    transition: border-color 0.15s;
+}
+
+.trus-role-check:hover {
+    border-color: var(--trus-brand);
+}
+
+.trus-role-check input {
+    cursor: pointer;
+}
+
+/* Save bar */
+.trus-save-bar {
+    padding: 16px 0;
+}
