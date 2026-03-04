@@ -38,7 +38,7 @@ export default async function DashboardOverviewPage() {
     const metrics = kpis ? [
         { label: 'Unique Visitors', value: kpis.uniqueVisitors, change: 0, icon: 'Users', color: 'bg-brand-500/80' },
         { label: 'Total Pageviews', value: kpis.totalPageviews, change: 0, icon: 'Eye', color: 'bg-accent-500/80' },
-        { label: 'Avg. Session Duration', value: `${Math.floor(kpis.avgDuration / 60)}m ${kpis.avgDuration % 60}s`, change: 0, icon: 'Clock', color: 'bg-purple-500/80' },
+        { label: 'Avg. Session Duration', value: (() => { const d = Math.round(Number(kpis.avgDuration) || 0); return `${Math.floor(d / 60)}m ${d % 60}s`; })(), change: 0, icon: 'Clock', color: 'bg-purple-500/80' },
         { label: 'Events Captured', value: kpis.totalPageviews, change: 0, icon: 'MousePointerClick', color: 'bg-orange-500/80' },
         { label: 'Bounce Rate', value: '—', change: 0, icon: 'TrendingUp', color: 'bg-green-500/80' },
         { label: 'Countries Reached', value: kpis.countriesReached, change: 0, icon: 'Globe2', color: 'bg-cyan-500/80' },

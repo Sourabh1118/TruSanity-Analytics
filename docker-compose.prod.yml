@@ -96,6 +96,7 @@ services:
       - "3000:3000"
     environment:
       - NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL:-https://api.trusanity.com}
+      - NEXT_PUBLIC_TRACKING_URL=${NEXT_PUBLIC_TRACKING_URL:-https://api.trusanity.com}
       # Server-side API calls must use the Docker service name, not localhost
       - INTERNAL_API_URL=http://api:3001
       - DATABASE_URL=postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-netrasecret}@postgres:5432/${POSTGRES_DB:-netra_db}
