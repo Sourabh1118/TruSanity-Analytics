@@ -9,20 +9,22 @@ import crypto from 'crypto';
 /**
  * Validates the current session and retrieves the active Tenant ID.
  */
-async function getActiveTenantId(): Promise<number> {
+async function getActiveTenantId(): Promise<number | null> {
     const session = await auth();
-    if (!session?.user?.id) throw new Error('Unauthorized');
+    if (!session?.user?.id) return null;
 
-    const memberships = await db.select()
-        .from(tenantMembers)
-        .where(eq(tenantMembers.userId, session.user.id));
-
-    if (!memberships || memberships.length === 0) {
-        throw new Error('User does not belong to any tenant');
+    try {
+        const memberships = await db.select()
+            .from(tenantMembers)
+            .where(eq(tenantMembers.userId, session.user.id));
+        if (!memberships || memberships.length === 0) return null;
+        return memberships[0].tenantId;
+    } catch (e) {
+        console.error('getActiveTenantId (projects) failed:', e);
+        return null;
     }
-
-    return memberships[0].tenantId;
 }
+
 
 /**
  * Returns all projects and their associated API Keys for the active tenant
@@ -30,24 +32,20 @@ async function getActiveTenantId(): Promise<number> {
 export async function getTenantProjects() {
     try {
         const tenantId = await getActiveTenantId();
+        if (tenantId === null) return [];
 
         const tenantProjects = await db.query.projects.findMany({
             where: eq(projects.tenantId, tenantId),
             orderBy: [desc(projects.createdAt)],
         });
 
-        // In a full implementation, we would use Drizzle's `with: { apiKeys: true }` relation
-        // For now we'll fetch them individually or execute a parallel query
         const projectsWithKeys = await Promise.all(
             tenantProjects.map(async (proj) => {
                 const keys = await db.select()
                     .from(apiKeys)
                     .where(eq(apiKeys.projectId, proj.id))
                     .orderBy(desc(apiKeys.createdAt));
-                return {
-                    ...proj,
-                    apiKeys: keys,
-                };
+                return { ...proj, apiKeys: keys };
             })
         );
 
@@ -63,8 +61,8 @@ export async function getTenantProjects() {
  */
 export async function generateApiKey(projectId: string, name: string) {
     const tenantId = await getActiveTenantId();
+    if (tenantId === null) throw new Error('Unauthorized or no tenant');
 
-    // Verify the project belongs to the tenant
     const project = await db.select()
         .from(projects)
         .where(and(eq(projects.id, projectId), eq(projects.tenantId, tenantId)))

@@ -11,22 +11,27 @@ import { redirect } from 'next/navigation'
  * Validates the current session and retrieves the active Tenant ID.
  * Crucial for strict Multi-Tenant Data Isolation!
  */
-async function getActiveTenantId(): Promise<number> {
+/**
+ * Validates the current session and retrieves the active Tenant ID.
+ * Returns null if not authenticated or no tenant found (caller decides what to do).
+ */
+async function getActiveTenantId(): Promise<number | null> {
     const session = await auth();
-    if (!session?.user?.id) redirect('/login');
+    if (!session?.user?.id) return null;
 
-    // In a production app, the active tenant ID would be inside the JWT token or a cookie
-    // For this blueprint, we fetch the first tenant the user belongs to.
-    const memberships = await db.select()
-        .from(tenantMembers)
-        .where(eq(tenantMembers.userId, session.user.id));
+    try {
+        const memberships = await db.select()
+            .from(tenantMembers)
+            .where(eq(tenantMembers.userId, session.user.id));
 
-    if (!memberships || memberships.length === 0) {
-        redirect('/register');
+        if (!memberships || memberships.length === 0) return null;
+        return memberships[0].tenantId;
+    } catch (e) {
+        console.error('getActiveTenantId failed:', e);
+        return null;
     }
-
-    return memberships[0].tenantId;
 }
+
 
 /**
  * Executes ClickHouse aggregations to get the top KPI metrics.

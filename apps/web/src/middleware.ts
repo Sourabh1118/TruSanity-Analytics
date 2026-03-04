@@ -5,40 +5,37 @@ const { auth } = NextAuth(authConfig);
 
 export default auth((req) => {
     const isLoggedIn = !!req.auth;
-    const isApiAuthRoute = req.nextUrl.pathname.startsWith('/api/auth');
-    const isPublicRoute = req.nextUrl.pathname === '/' || req.nextUrl.pathname === '/login' || req.nextUrl.pathname === '/register';
-    const isAdminRoute = req.nextUrl.pathname.startsWith('/admin');
+    const { pathname } = req.nextUrl;
+    const isApiAuthRoute = pathname.startsWith('/api/auth');
+    const isPublicRoute =
+        pathname === '/' ||
+        pathname === '/login' ||
+        pathname === '/register' ||
+        pathname === '/onboarding';
+    const isAdminRoute = pathname.startsWith('/admin');
 
     if (isApiAuthRoute) {
         return null;
     }
 
+    // Redirect unauthenticated users to Storefront login
     if (!isLoggedIn && !isPublicRoute) {
         const storefrontUrl = process.env.NEXT_PUBLIC_STOREFRONT_URL || 'https://trusanity.com';
         return Response.redirect(new URL('/login', storefrontUrl));
     }
 
-    if (isLoggedIn && isPublicRoute) {
+    // NOTE: We intentionally do NOT redirect logged-in users away from /login or /register.
+    // This prevents redirect loops when the user has no tenant yet.
+
+    // Strict RBAC for admin routes
+    if (isAdminRoute && isLoggedIn && req.auth?.user?.role !== 'SUPER_ADMIN') {
         return Response.redirect(new URL('/dashboard', req.nextUrl));
-    }
-
-    // Strict RBAC: Intercept any /admin request and block it if the user is not a SUPER_ADMIN
-    if (isAdminRoute) {
-        if (!isLoggedIn) {
-            const storefrontUrl = process.env.NEXT_PUBLIC_STOREFRONT_URL || 'https://trusanity.com';
-            return Response.redirect(new URL('/login', storefrontUrl));
-        }
-
-        // Assert the custom role we added in auth.ts and the DB schema
-        if (req.auth?.user?.role !== 'SUPER_ADMIN') {
-            return Response.redirect(new URL('/dashboard', req.nextUrl));
-        }
     }
 
     return null;
 });
 
-// Optionally, don't invoke Middleware on some paths
 export const config = {
     matcher: ['/((?!api|_next/static|_next/image|favicon.ico|fonts).*)'],
 };
+
