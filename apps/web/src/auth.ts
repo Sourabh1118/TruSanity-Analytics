@@ -13,47 +13,20 @@ declare module "next-auth" {
     }
 }
 
-import Credentials from "next-auth/providers/credentials"
-import { DrizzleAdapter } from "@auth/drizzle-adapter"
-import { db } from "./lib/db"
-import { users } from "@netra/db"
-import { eq } from "drizzle-orm"
 import authConfig from "./auth.config"
 
+/**
+ * Analytics NextAuth configuration.
+ *
+ * NO DrizzleAdapter here — the Analytics app reads the shared JWT cookie
+ * that the Storefront creates. Adding an adapter causes NextAuth to attempt
+ * DB inserts (including missing columns like "emailVerified") on every auth() call.
+ *
+ * All tenant/user provisioning in the Analytics DB is handled explicitly by
+ * provisioning.ts, not by NextAuth internals.
+ */
 export const { handlers, signIn, signOut, auth } = NextAuth({
     ...authConfig,
-    adapter: DrizzleAdapter(db),
     session: { strategy: "jwt" },
-    providers: [
-        Credentials({
-            credentials: {
-                email: { label: "Email", type: "email" },
-                password: { label: "Password", type: "password" },
-            },
-            async authorize(credentials) {
-                if (!credentials?.email || !credentials?.password) {
-                    return null
-                }
-
-                const [user] = await db.select().from(users).where(eq(users.email, credentials.email as string)).limit(1)
-
-                if (!user) {
-                    return null
-                }
-
-                // Temporary insecure check for MVP/Testing - assumes password equals hash
-                // In production, we should hash it with bcrypt and compare
-                if (user.passwordHash !== credentials.password) {
-                    return null
-                }
-
-                return {
-                    id: user.id.toString(),
-                    email: user.email,
-                    name: user.name,
-                    role: user.role,
-                }
-            },
-        }),
-    ],
+    providers: [],
 })
