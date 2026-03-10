@@ -74,10 +74,7 @@ export function DashboardSidebar() {
         <aside className="w-64 h-full flex flex-col bg-bg-surface border-r border-border flex-shrink-0">
             {/* Logo + project switcher */}
             <div className="p-4 border-b border-border">
-                <div className="flex items-center gap-2 font-bold text-base mb-3">
-                    <div className="w-7 h-7 rounded-lg gradient-brand flex items-center justify-center flex-shrink-0">
-                        <BarChart3 className="w-4 h-4 text-white" />
-                    </div>
+                <div className="flex items-center mb-3">
                     <span className="font-brand text-2xl tracking-wide gradient-brand-text">trusanity</span>
                 </div>
 
