@@ -12,6 +12,8 @@ import { aiRoutes } from './ai'
 import { getTenantQuota } from './services/billing'
 import { Queue, Worker, Job } from 'bullmq'
 import { Kafka } from 'kafkajs'
+import fs from 'fs'
+import path from 'path'
 
 // ── Environment Variables ────────────────────────────────
 const PORT = process.env.PORT ? parseInt(process.env.PORT) : 3001
@@ -58,7 +60,8 @@ const fastify = Fastify({
 
 // Validation Schema for incoming events
 const EventSchema = z.object({
-    projectId: z.string().uuid(),
+    // projectId can be the API key string (trus_pk_xxx) or a UUID — both are accepted
+    projectId: z.string().min(4),
     events: z.array(
         z.object({
             name: z.string(),
@@ -71,8 +74,15 @@ const EventSchema = z.object({
             referrer: z.string().optional(),
             properties: z.record(z.any()).optional(),
         })
-    ).min(1).max(100), // Max 100 events per batch
+    ).min(1).max(100),
 })
+
+// Read built SDK once at startup
+const TRACK_JS_PATH = path.join(__dirname, '..', 'public', 'track.js')
+let TRACK_JS_CONTENT: string = '// Trusanity SDK not found'
+try { TRACK_JS_CONTENT = fs.readFileSync(TRACK_JS_PATH, 'utf8') } catch (e) {
+    console.warn('[API] track.js not found at', TRACK_JS_PATH)
+}
 
 // Main entrypoint
 async function start() {
@@ -108,10 +118,17 @@ async function start() {
         }
     })
 
-    // Health check
-    fastify.get('/health', async () => {
-        return { status: 'ok', timestamp: new Date().toISOString() }
+    // ── Browser Tracking SDK ──────────────────────────────────────────────
+    fastify.get('/track.js', async (request, reply) => {
+        reply.header('Content-Type', 'application/javascript; charset=utf-8')
+        reply.header('Cache-Control', 'public, max-age=3600')
+        reply.header('Access-Control-Allow-Origin', '*')
+        return reply.send(TRACK_JS_CONTENT)
     })
+
+    // Health check (both /health and /v1/health for plugin compatibility)
+    fastify.get('/health', async () => ({ status: 'ok', timestamp: new Date().toISOString() }))
+    fastify.get('/v1/health', async () => ({ status: 'ok', timestamp: new Date().toISOString() }))
 
     // AI Summarization Routes
     await fastify.register(aiRoutes)
@@ -201,15 +218,9 @@ async function start() {
             const cachedData = await redis.get(`apikey:${token}`)
 
             if (cachedData) {
-                // Cache hit
+                // Cache hit — API key alone identifies the project
                 const parts = cachedData.split(':')
-                const cachedTenantId = parseInt(parts[0] || '0', 10)
-                const cachedProjectId = parts[1]
-
-                if (cachedProjectId !== payload.projectId) {
-                    return reply.status(401).send({ error: 'Unauthorized: Invalid Project ID for this key' })
-                }
-                tenantId = cachedTenantId
+                tenantId = parseInt(parts[0] || '0', 10)
             } else {
                 // Cache miss, lookup in Postgres
                 const apiKeyRecord = await db.query.apiKeys.findFirst({
@@ -217,7 +228,7 @@ async function start() {
                     with: { project: true }
                 })
 
-                if (!apiKeyRecord || !apiKeyRecord.isActive || apiKeyRecord.projectId !== payload.projectId) {
+                if (!apiKeyRecord || !apiKeyRecord.isActive) {
                     return reply.status(401).send({ error: 'Unauthorized: Invalid or inactive API key' })
                 }
 
