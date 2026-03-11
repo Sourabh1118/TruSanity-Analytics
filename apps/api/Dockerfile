@@ -35,9 +35,10 @@ ENV NODE_ENV=production
 RUN addgroup --system --gid 1001 nodejs && \
     adduser  --system --uid 1001 apiuser
 
-COPY --from=builder --chown=apiuser:nodejs /app/apps/api/dist ./dist
-COPY --from=builder --chown=apiuser:nodejs /app/node_modules ./node_modules
-COPY --from=builder --chown=apiuser:nodejs /app/packages ./packages
+COPY --from=builder --chown=apiuser:nodejs /app/apps/api/dist    ./dist
+COPY --from=builder --chown=apiuser:nodejs /app/apps/api/public  ./public
+COPY --from=builder --chown=apiuser:nodejs /app/node_modules     ./node_modules
+COPY --from=builder --chown=apiuser:nodejs /app/packages         ./packages
 
 USER apiuser
 EXPOSE 3001
