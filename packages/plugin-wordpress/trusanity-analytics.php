@@ -3,7 +3,7 @@
  * Plugin Name:  Trusanity Analytics
  * Plugin URI:   https://trusanity.com
  * Description:  Privacy-first behavioral analytics. Connects your WordPress / WooCommerce site to your Trusanity workspace – auto-tracking, WooCommerce events, and a one-click setup wizard.
- * Version:      1.0.0
+ * Version:      1.0.2
  * Author:       Trusanity
  * Author URI:   https://trusanity.com
  * License:      GPL-2.0+
@@ -12,7 +12,7 @@
 
 if ( ! defined( 'ABSPATH' ) ) exit;
 
-define( 'TRUS_VERSION',  '1.0.0' );
+define( 'TRUS_VERSION',  '1.0.2' );
 define( 'TRUS_API_BASE', 'https://api.trusanity.com' );
 
 /* ─────────────────────────────────────────────────────────────────────────────
@@ -281,6 +281,19 @@ class Trusanity_Analytics {
                             </td>
                         </tr>
                     </table>
+                </div>
+
+                <!-- ── Section 5: Debug & Testing ────────────────────── -->
+                <div class="trus-card">
+                    <h2 class="trus-section-title">🛠️ Debug & Testing</h2>
+                    <p class="trus-desc">Send a manual test event to verify your server connection and API token.</p>
+                    
+                    <button type="button" id="trus-test-event-btn" class="button button-secondary">Send Test Event</button>
+                    
+                    <div class="trus-debug-console">
+                        <div class="trus-debug-header">Live Server Log</div>
+                        <pre id="trus-debug-log" class="trus-debug-log">Waiting for actions...</pre>
+                    </div>
                 </div>
 
                 <!-- Save -->

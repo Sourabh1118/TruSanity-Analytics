@@ -92,9 +92,11 @@ async function start() {
     // Core middleware
     await fastify.register(helmet, { contentSecurityPolicy: false })
     await fastify.register(cors, {
-        origin: '*',
-        methods: ['POST', 'OPTIONS', 'GET'],
-        allowedHeaders: ['Content-Type', 'Authorization', 'Upgrade', 'Connection'],
+        origin: '*', // Allow all origins for the ingestion API
+        methods: ['POST', 'OPTIONS', 'GET', 'PUT', 'DELETE'],
+        allowedHeaders: ['Content-Type', 'Authorization', 'Upgrade', 'Connection', 'x-requested-with'],
+        credentials: true,
+        maxAge: 86400, // Cache preflight requests for 24 hours
     })
     await fastify.register(rateLimit, {
         max: 1000,

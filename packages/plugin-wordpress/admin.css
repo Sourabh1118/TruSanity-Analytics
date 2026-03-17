@@ -295,3 +295,40 @@
 .trus-save-bar {
     padding: 16px 0;
 }
+
+/* Debug console */
+.trus-debug-console {
+    margin-top: 16px;
+    background: #0f172a;
+    border-radius: 8px;
+    border: 1px solid #334155;
+    overflow: hidden;
+}
+
+.trus-debug-header {
+    background: #1e293b;
+    color: #94a3b8;
+    padding: 8px 12px;
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    border-bottom: 1px solid #334155;
+}
+
+.trus-debug-log {
+    margin: 0;
+    padding: 12px;
+    color: #34d399;
+    font-size: 12px;
+    font-family: 'SF Mono', 'Fira Code', monospace;
+    white-space: pre-wrap;
+    max-height: 250px;
+    overflow-y: auto;
+    word-break: break-all;
+}
+
+.trus-debug-log .log-err { color: #f87171; }
+.trus-debug-log .log-tx { color: #38bdf8; }
+.trus-debug-log .log-rx { color: #34d399; }
+.trus-debug-log .log-time { color: #64748b; font-size: 10px; margin-right: 6px; }
