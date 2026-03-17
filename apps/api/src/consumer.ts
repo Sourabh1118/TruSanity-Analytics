@@ -25,7 +25,8 @@ let flushTimer: NodeJS.Timeout | null = null
 async function flushToCH(rows: any[]): Promise<void> {
     if (rows.length === 0) return
     const ndjson = rows.map(r => {
-        if (r.timestamp) r.timestamp = r.timestamp.replace('T', ' ').replace('Z', '')
+        // ClickHouse DateTime format: 'YYYY-MM-DD HH:MM:SS' (no milliseconds, no Z)
+        if (r.timestamp) r.timestamp = r.timestamp.split('.')[0].replace('T', ' ')
         return JSON.stringify(r)
     }).join('\n')
     const url = `${CLICKHOUSE_URL}/?query=${encodeURIComponent(
