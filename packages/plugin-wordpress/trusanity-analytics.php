@@ -321,7 +321,8 @@ class Trusanity_Analytics {
         <script>
         (function(){
             var cfg = <?php echo wp_json_encode( $cfg ); ?>;
-            var tr = window.trusanity || function(){ (window.trusanity.q = window.trusanity.q||[]).push(arguments); };
+            window.trusanity = window.trusanity || function(){ (window.trusanity.q = window.trusanity.q||[]).push(arguments); };
+            var tr = window.trusanity;
 
             // Outbound links
             if(cfg.outbound){
@@ -457,7 +458,7 @@ class Trusanity_Analytics {
                 'name'         => 'Purchase_Completed',
                 'session_id'   => 'server_' . $order_id,
                 'anonymous_id' => wp_hash( $order->get_billing_email() ),
-                'timestamp'    => gmdate( 'Y-m-d H:i:s' ),
+                'timestamp'    => gmdate( 'Y-m-d\TH:i:s\Z' ),
                 'properties'   => [
                     'order_id' => $order_id,
                     'revenue'  => (float) $order->get_total(),
