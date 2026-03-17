@@ -27,6 +27,14 @@ COPY . .
 RUN pnpm --filter @netra/db build 2>/dev/null || true
 RUN pnpm --filter @netra/api build
 
+# Use pnpm deploy to create a self-contained directory with all deps resolved
+# This flattens the pnpm virtual store so Node can find all modules correctly
+RUN pnpm --filter @netra/api deploy --prod /deploy
+
+# Copy compiled dist + public into the deploy output (pnpm deploy only copies src)
+RUN cp -r /app/apps/api/dist /deploy/dist
+RUN cp -r /app/apps/api/public /deploy/public 2>/dev/null || true
+
 # ── runner: minimal production image ─────────────────────────────────────
 FROM node:20-alpine AS runner
 WORKDIR /app
@@ -35,17 +43,8 @@ ENV NODE_ENV=production
 RUN addgroup --system --gid 1001 nodejs && \
     adduser  --system --uid 1001 apiuser
 
-# Copy compiled output
-COPY --from=builder --chown=apiuser:nodejs /app/apps/api/dist    ./dist
-COPY --from=builder --chown=apiuser:nodejs /app/apps/api/public  ./public
-
-# Copy node_modules: pnpm workspaces store deps both at root AND per-app.
-# We need BOTH layers so that fastify and other app deps resolve correctly.
-COPY --from=builder --chown=apiuser:nodejs /app/node_modules              ./node_modules
-COPY --from=builder --chown=apiuser:nodejs /app/apps/api/node_modules     ./apps/api/node_modules
-
-# Copy shared packages (e.g. @netra/db) referenced via workspace protocol
-COPY --from=builder --chown=apiuser:nodejs /app/packages                  ./packages
+# Copy the fully self-contained deploy output — node_modules are flat and resolved
+COPY --from=builder --chown=apiuser:nodejs /deploy ./
 
 USER apiuser
 EXPOSE 3001
