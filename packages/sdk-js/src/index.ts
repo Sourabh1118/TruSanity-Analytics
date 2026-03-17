@@ -260,7 +260,7 @@ class Trusanity {
 
     public evaluateFlag(flagKey: string, defaultValue: boolean = false): boolean {
         if (this.flags.hasOwnProperty(flagKey)) {
-            return this.flags[flagKey];
+            return this.flags[flagKey] ?? defaultValue;
         }
         return defaultValue;
     }

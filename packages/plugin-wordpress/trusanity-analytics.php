@@ -132,19 +132,19 @@ class Trusanity_Analytics {
         check_ajax_referer( 'trus_create_project', 'nonce' );
         
         $site_name = sanitize_text_field( $_POST['site_name'] ?? get_bloginfo( 'name' ) );
-        $admin_email = sanitize_email( $_POST['admin_email'] ?? get_option( 'admin_email' ) );
+        $tenant_id = intval( $_POST['tenant_id'] ?? 0 );
         $ingest = sanitize_url( $_POST['ingest_url'] ?? TRUS_API_BASE );
         $ingest = untrailingslashit( $ingest );
 
-        if ( empty( $site_name ) || empty( $admin_email ) ) {
-            wp_send_json_error( [ 'message' => 'Site name and admin email are required.' ] );
+        if ( empty( $site_name ) || $tenant_id <= 0 ) {
+            wp_send_json_error( [ 'message' => 'Site name and tenant ID are required.' ] );
             return;
         }
 
         $payload = [
             'name' => $site_name,
             'timezone' => wp_timezone_string(),
-            'tenantEmail' => $admin_email,
+            'tenantId' => $tenant_id,
         ];
 
         $response = wp_remote_post( $ingest . '/v1/projects/auto-create', [
@@ -223,8 +223,13 @@ class Trusanity_Analytics {
                             <div class="trus-auto-create-icon">🚀</div>
                             <div>
                                 <h3>Quick Setup - Auto-Create Project</h3>
-                                <p>Create a new Trusanity project for <strong><?php echo esc_html( get_bloginfo( 'name' ) ); ?></strong> with one click. Your API key will be automatically configured.</p>
+                                <p>Create a new Trusanity project for <strong><?php echo esc_html( get_bloginfo( 'name' ) ); ?></strong>. You'll need your Tenant ID from the <a href="https://app.trusanity.com/dashboard" target="_blank">Trusanity dashboard</a>.</p>
                             </div>
+                        </div>
+                        <div style="margin-bottom: 12px;">
+                            <input type="number" id="trus-tenant-id" placeholder="Enter your Tenant ID (e.g., 1)" 
+                                   class="regular-text" min="1" style="margin-right: 8px;" />
+                            <p class="description">Find your Tenant ID in the Trusanity dashboard settings.</p>
                         </div>
                         <button type="button" id="trus-auto-create-btn" class="button button-primary button-hero">
                             <span class="dashicons dashicons-plus-alt" style="margin-top:4px"></span> Create Project Automatically

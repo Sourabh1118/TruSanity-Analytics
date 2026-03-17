@@ -9,6 +9,12 @@ jQuery(function ($) {
 
     $autoCreateBtn.on('click', function () {
         var ingest = $('input[name="trusanity_ingest_url"]').val().trim() || 'https://api.trusanity.com';
+        var tenantId = parseInt($('#trus-tenant-id').val().trim(), 10);
+
+        if (!tenantId || tenantId <= 0) {
+            $autoCreateResult.addClass('err').text('⚠ Please enter a valid Tenant ID.');
+            return;
+        }
 
         $autoCreateBtn.prop('disabled', true).html('<span class="dashicons dashicons-update spin"></span> Creating Project...');
         $autoCreateResult.removeClass('ok err').text('');
@@ -17,7 +23,7 @@ jQuery(function ($) {
             action: 'trus_auto_create_project',
             nonce: TrusAdmin.create_nonce,
             site_name: TrusAdmin.site_name,
-            admin_email: TrusAdmin.admin_email,
+            tenant_id: tenantId,
             ingest_url: ingest,
         }, function (res) {
             if (res.success) {
