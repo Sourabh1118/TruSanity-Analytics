@@ -34,14 +34,16 @@ const kafka = new Kafka({
 const producer = kafka.producer()
 
 // ── Reporting & BullMQ ──────────────────────────────────
-export const reportingQueue = new Queue('reports', { connection: redis })
+// BullMQ requires a Redis connection with maxRetriesPerRequest: null
+const bullmqConnection = { url: REDIS_URL, maxRetriesPerRequest: null }
+export const reportingQueue = new Queue('reports', { connection: bullmqConnection })
 
 const reportWorker = new Worker('reports', async (job: Job) => {
     console.log(`[ReportWorker] Processing report job ${job.id} for project ${job.data?.projectId}`)
     // Simulate report generation and email dispatch
     await new Promise(resolve => setTimeout(resolve, 2000))
     console.log(`[ReportWorker] Successfully dispatched report to ${job.data?.emails}`)
-}, { connection: redis })
+}, { connection: bullmqConnection })
 
 reportWorker.on('failed', (job, err) => {
     console.error(`[ReportWorker] Job ${job?.id} failed: ${err.message}`)
