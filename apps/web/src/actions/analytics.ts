@@ -27,9 +27,9 @@ export async function getDashboardKpis() {
             SELECT
                 count(DISTINCT anonymous_id) as unique_visitors,
                 count() as total_pageviews,
-                avg(session_duration) as avg_duration,
-                uniqExact(name) as unique_events_captured,
-                count(DISTINCT JSONExtractString(properties, 'country')) as countries_reached
+                0 as avg_duration,
+                uniqExact(event_name) as unique_events_captured,
+                count(DISTINCT country) as countries_reached
             FROM netra.events
             WHERE tenant_id = {tenantId: Int32}
               AND timestamp >= subtractDays(now(), 7)
@@ -116,9 +116,9 @@ export async function getRecentEvents() {
     try {
         const query = `
             SELECT
-                name as event,
+                event_name as event,
                 anonymous_id as user_id,
-                JSONExtractString(properties, 'path') as path,
+                path,
                 timestamp
             FROM netra.events
             WHERE tenant_id = {tenantId: Int32}
@@ -147,7 +147,7 @@ export async function getEventsTable(limit: number = 100) {
     try {
         const query = `
             SELECT
-                name as event,
+                event_name as event,
                 anonymous_id as user_id,
                 properties,
                 timestamp
@@ -176,10 +176,10 @@ export async function getTopPages() {
     try {
         const query = `
             SELECT
-                JSONExtractString(properties, 'path') as page,
+                path as page,
                 count() as views
             FROM netra.events
-            WHERE tenant_id = {tenantId: Int32} AND name = '$pageview'
+            WHERE tenant_id = {tenantId: Int32} AND event_name = '$pageview'
             GROUP BY page
             ORDER BY views DESC
             LIMIT 10
@@ -197,10 +197,10 @@ export async function getTopReferrers() {
     try {
         const query = `
             SELECT
-                JSONExtractString(properties, 'referrer') as source,
+                referrer as source,
                 count() as visits
             FROM netra.events
-            WHERE tenant_id = {tenantId: Int32} AND name = '$pageview' AND JSONExtractString(properties, 'referrer') != ''
+            WHERE tenant_id = {tenantId: Int32} AND event_name = '$pageview' AND referrer != ''
             GROUP BY source
             ORDER BY visits DESC
             LIMIT 5
@@ -218,10 +218,10 @@ export async function getTopBrowsers() {
     try {
         const query = `
             SELECT
-                JSONExtractString(properties, 'browser') as user_agent,
+                browser as user_agent,
                 count() as hits
             FROM netra.events
-            WHERE tenant_id = {tenantId: Int32} AND JSONExtractString(properties, 'browser') != ''
+            WHERE tenant_id = {tenantId: Int32} AND browser != ''
             GROUP BY user_agent
             ORDER BY hits DESC
             LIMIT 5

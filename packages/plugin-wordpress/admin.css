@@ -332,3 +332,83 @@
 .trus-debug-log .log-tx { color: #38bdf8; }
 .trus-debug-log .log-rx { color: #34d399; }
 .trus-debug-log .log-time { color: #64748b; font-size: 10px; margin-right: 6px; }
+
+/* Auto-create project box */
+.trus-auto-create-box {
+    background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+    border: 2px solid #7dd3fc;
+    border-radius: 12px;
+    padding: 20px;
+    margin-bottom: 20px;
+}
+
+.trus-auto-create-content {
+    display: flex;
+    align-items: flex-start;
+    gap: 16px;
+    margin-bottom: 16px;
+}
+
+.trus-auto-create-icon {
+    font-size: 32px;
+    flex-shrink: 0;
+}
+
+.trus-auto-create-box h3 {
+    margin: 0 0 6px;
+    font-size: 16px;
+    font-weight: 700;
+    color: #0c4a6e;
+}
+
+.trus-auto-create-box p {
+    margin: 0;
+    font-size: 13px;
+    color: #0369a1;
+    line-height: 1.5;
+}
+
+.trus-auto-create-box .button-hero {
+    font-size: 14px;
+    padding: 10px 20px;
+    height: auto;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.trus-divider {
+    text-align: center;
+    margin: 24px 0;
+    position: relative;
+}
+
+.trus-divider::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background: var(--trus-border);
+}
+
+.trus-divider span {
+    position: relative;
+    background: var(--trus-card);
+    padding: 0 12px;
+    color: var(--trus-muted);
+    font-size: 12px;
+    font-weight: 600;
+}
+
+/* Spinning animation for loading */
+@keyframes spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+.spin {
+    animation: spin 1s linear infinite;
+    display: inline-block;
+}

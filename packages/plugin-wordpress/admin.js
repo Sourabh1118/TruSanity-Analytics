@@ -3,6 +3,41 @@ jQuery(function ($) {
     var $btn = $('#trus-verify-btn');
     var $result = $('#trus-verify-result');
 
+    // --- Auto-Create Project ---
+    var $autoCreateBtn = $('#trus-auto-create-btn');
+    var $autoCreateResult = $('#trus-auto-create-result');
+
+    $autoCreateBtn.on('click', function () {
+        var ingest = $('input[name="trusanity_ingest_url"]').val().trim() || 'https://api.trusanity.com';
+
+        $autoCreateBtn.prop('disabled', true).html('<span class="dashicons dashicons-update spin"></span> Creating Project...');
+        $autoCreateResult.removeClass('ok err').text('');
+
+        $.post(TrusAdmin.ajax_url, {
+            action: 'trus_auto_create_project',
+            nonce: TrusAdmin.create_nonce,
+            site_name: TrusAdmin.site_name,
+            admin_email: TrusAdmin.admin_email,
+            ingest_url: ingest,
+        }, function (res) {
+            if (res.success) {
+                $autoCreateResult.addClass('ok').html('✓ ' + res.data.message + '<br><strong>API Key:</strong> <code>' + res.data.apiKey + '</code>');
+                $('#trus-api-key').val(res.data.apiKey);
+                // Auto-save the form
+                setTimeout(function() {
+                    $('#trus-form').submit();
+                }, 1500);
+            } else {
+                $autoCreateResult.addClass('err').text('✗ ' + (res.data ? res.data.message : 'Failed to create project.'));
+            }
+        }).fail(function () {
+            $autoCreateResult.addClass('err').text('✗ Network error — could not reach the server.');
+        }).always(function () {
+            $autoCreateBtn.prop('disabled', false).html('<span class="dashicons dashicons-plus-alt"></span> Create Project Automatically');
+        });
+    });
+
+    // --- Verify API Key ---
     $btn.on('click', function () {
         var key = $('#trus-api-key').val().trim();
         var ingest = $('input[name="trusanity_ingest_url"]').val().trim();

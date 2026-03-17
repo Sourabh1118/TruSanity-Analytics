@@ -28,6 +28,7 @@ class Trusanity_Analytics {
         add_action( 'wp_footer',        [ $this, 'inject_auto_events' ] );
         add_action( 'template_redirect', [ $this, 'track_404' ] );
         add_action( 'wp_ajax_trus_verify_key', [ $this, 'ajax_verify_key' ] );
+        add_action( 'wp_ajax_trus_auto_create_project', [ $this, 'ajax_auto_create_project' ] );
         add_action( 'admin_notices',    [ $this, 'setup_notice' ] );
 
         // WooCommerce
@@ -79,6 +80,9 @@ class Trusanity_Analytics {
         wp_localize_script( 'trus-admin', 'TrusAdmin', [
             'ajax_url' => admin_url( 'admin-ajax.php' ),
             'nonce'    => wp_create_nonce( 'trus_verify' ),
+            'create_nonce' => wp_create_nonce( 'trus_create_project' ),
+            'site_name' => get_bloginfo( 'name' ),
+            'admin_email' => get_option( 'admin_email' ),
         ] );
     }
 
@@ -123,6 +127,60 @@ class Trusanity_Analytics {
         wp_send_json_success( [ 'message' => 'Connection verified ✓' ] );
     }
 
+    /* ── AJAX: Auto-Create Project ───────────────────────────────────────── */
+    public function ajax_auto_create_project() {
+        check_ajax_referer( 'trus_create_project', 'nonce' );
+        
+        $site_name = sanitize_text_field( $_POST['site_name'] ?? get_bloginfo( 'name' ) );
+        $admin_email = sanitize_email( $_POST['admin_email'] ?? get_option( 'admin_email' ) );
+        $ingest = sanitize_url( $_POST['ingest_url'] ?? TRUS_API_BASE );
+        $ingest = untrailingslashit( $ingest );
+
+        if ( empty( $site_name ) || empty( $admin_email ) ) {
+            wp_send_json_error( [ 'message' => 'Site name and admin email are required.' ] );
+            return;
+        }
+
+        $payload = [
+            'name' => $site_name,
+            'timezone' => wp_timezone_string(),
+            'tenantEmail' => $admin_email,
+        ];
+
+        $response = wp_remote_post( $ingest . '/v1/projects/auto-create', [
+            'body' => wp_json_encode( $payload ),
+            'headers' => [ 'Content-Type' => 'application/json' ],
+            'timeout' => 15,
+        ] );
+
+        if ( is_wp_error( $response ) ) {
+            wp_send_json_error( [ 'message' => 'Network error: ' . $response->get_error_message() ] );
+            return;
+        }
+
+        $code = wp_remote_retrieve_response_code( $response );
+        $body = json_decode( wp_remote_retrieve_body( $response ), true );
+
+        if ( $code !== 200 || empty( $body['success'] ) ) {
+            $error_msg = $body['error'] ?? 'Failed to create project';
+            wp_send_json_error( [ 'message' => $error_msg ] );
+            return;
+        }
+
+        // Auto-save the generated API key
+        $api_key = $body['apiKey'] ?? '';
+        if ( $api_key ) {
+            update_option( 'trusanity_api_key', $api_key );
+            update_option( 'trusanity_verified', 1 );
+        }
+
+        wp_send_json_success( [
+            'message' => $body['message'] ?? 'Project created successfully!',
+            'apiKey' => $api_key,
+            'projectName' => $body['project']['name'] ?? $site_name,
+        ] );
+    }
+
     /* ── Settings Page HTML ──────────────────────────────────────────────── */
     public function settings_page() {
         $key      = $this->api_key();
@@ -155,7 +213,28 @@ class Trusanity_Analytics {
                 <!-- ── Section 1: Connection ─────────────────────────── -->
                 <div class="trus-card">
                     <h2 class="trus-section-title">🔑 Connection</h2>
-                    <p class="trus-desc">Copy your Project API Key from <a href="https://app.trusanity.com/dashboard" target="_blank">app.trusanity.com/dashboard</a> → Quick Start SDK section.</p>
+                    <p class="trus-desc">
+                        <strong>Option 1:</strong> Copy your Project API Key from <a href="https://app.trusanity.com/dashboard" target="_blank">app.trusanity.com/dashboard</a> → Quick Start SDK section.<br>
+                        <strong>Option 2:</strong> Click the button below to automatically create a new project and get your API key instantly.
+                    </p>
+
+                    <div class="trus-auto-create-box">
+                        <div class="trus-auto-create-content">
+                            <div class="trus-auto-create-icon">🚀</div>
+                            <div>
+                                <h3>Quick Setup - Auto-Create Project</h3>
+                                <p>Create a new Trusanity project for <strong><?php echo esc_html( get_bloginfo( 'name' ) ); ?></strong> with one click. Your API key will be automatically configured.</p>
+                            </div>
+                        </div>
+                        <button type="button" id="trus-auto-create-btn" class="button button-primary button-hero">
+                            <span class="dashicons dashicons-plus-alt" style="margin-top:4px"></span> Create Project Automatically
+                        </button>
+                        <div id="trus-auto-create-result" class="trus-verify-msg"></div>
+                    </div>
+
+                    <div class="trus-divider">
+                        <span>OR</span>
+                    </div>
 
                     <table class="form-table trus-table">
                         <tr>
@@ -169,7 +248,7 @@ class Trusanity_Analytics {
                                     <button type="button" id="trus-verify-btn" class="button button-secondary">Test Connection</button>
                                 </div>
                                 <div id="trus-verify-result" class="trus-verify-msg"></div>
-                                <p class="description">Found in your Trusanity dashboard → Quick Start SDK card.</p>
+                                <p class="description">Manually enter your API key from the Trusanity dashboard.</p>
                             </td>
                         </tr>
                         <tr>

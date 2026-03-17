@@ -9,6 +9,7 @@ import { db } from './db'
 import { apiKeys, featureFlags } from '@netra/db'
 import { eq, and } from 'drizzle-orm'
 import { aiRoutes } from './ai'
+import { projectRoutes } from './routes/projects'
 import { getTenantQuota } from './services/billing'
 import { Queue, Worker, Job } from 'bullmq'
 import { Kafka } from 'kafkajs'
@@ -136,6 +137,9 @@ async function start() {
 
     // AI Summarization Routes
     await fastify.register(aiRoutes)
+
+    // Project Management Routes
+    await fastify.register(projectRoutes)
 
     // WebSocket Stream Endpoint
     fastify.get('/v1/stream', { websocket: true }, (connection /* SocketStream */, req) => {
