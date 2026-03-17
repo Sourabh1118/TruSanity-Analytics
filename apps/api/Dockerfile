@@ -29,7 +29,7 @@ RUN pnpm --filter @netra/api build
 
 # Use pnpm deploy to create a self-contained directory with all deps resolved
 # This flattens the pnpm virtual store so Node can find all modules correctly
-RUN pnpm --filter @netra/api deploy --prod /deploy
+RUN pnpm --filter @netra/api deploy --prod --legacy /deploy
 
 # Copy compiled dist + public into the deploy output (pnpm deploy only copies src)
 RUN cp -r /app/apps/api/dist /deploy/dist
