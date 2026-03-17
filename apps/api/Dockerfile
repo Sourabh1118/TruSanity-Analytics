@@ -35,10 +35,17 @@ ENV NODE_ENV=production
 RUN addgroup --system --gid 1001 nodejs && \
     adduser  --system --uid 1001 apiuser
 
+# Copy compiled output
 COPY --from=builder --chown=apiuser:nodejs /app/apps/api/dist    ./dist
 COPY --from=builder --chown=apiuser:nodejs /app/apps/api/public  ./public
-COPY --from=builder --chown=apiuser:nodejs /app/node_modules     ./node_modules
-COPY --from=builder --chown=apiuser:nodejs /app/packages         ./packages
+
+# Copy node_modules: pnpm workspaces store deps both at root AND per-app.
+# We need BOTH layers so that fastify and other app deps resolve correctly.
+COPY --from=builder --chown=apiuser:nodejs /app/node_modules              ./node_modules
+COPY --from=builder --chown=apiuser:nodejs /app/apps/api/node_modules     ./apps/api/node_modules
+
+# Copy shared packages (e.g. @netra/db) referenced via workspace protocol
+COPY --from=builder --chown=apiuser:nodejs /app/packages                  ./packages
 
 USER apiuser
 EXPOSE 3001
