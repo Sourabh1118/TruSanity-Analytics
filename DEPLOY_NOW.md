@@ -157,10 +157,15 @@ After deployment, WordPress users should:
 
 1. Install the Trusanity Analytics plugin
 2. Go to Settings → Trusanity Analytics
-3. Find their **Tenant ID** from the Trusanity dashboard (Settings page)
-4. Enter the Tenant ID in the plugin
+3. **Find their Tenant ID:**
+   - Log in to the Trusanity dashboard at `https://your-domain.com/dashboard`
+   - Navigate to **Dashboard → Settings → Developer**
+   - Copy the **Tenant ID** displayed at the top of the page (it's a number like `1`, `2`, etc.)
+4. Enter the Tenant ID in the WordPress plugin
 5. Click "Create Project Automatically"
 6. The API key will be auto-filled and saved
+
+**Note:** The Tenant ID is now prominently displayed in the Developer Settings page with a copy button for easy access.
 
 ---
 

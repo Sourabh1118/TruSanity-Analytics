@@ -172,3 +172,58 @@ docker compose -f infra/docker-compose.yml logs -f consumer
 - The issue was purely in the query layer, not the ingestion pipeline
 - WordPress plugin now provides the smoothest onboarding experience possible
 - All changes are backward compatible with existing installations
+
+
+---
+
+## Issue 3: Tenant ID Not Visible for WordPress Plugin Setup
+
+### Problem
+WordPress plugin requires Tenant ID for auto-create feature, but users didn't know where to find it.
+
+### Root Cause
+The Tenant ID was stored in the database but never displayed in the dashboard UI.
+
+### Solution
+Added Tenant ID display to the Developer Settings page:
+
+1. **Backend Changes** (`apps/web/src/app/dashboard/settings/developer/page.tsx`):
+   - Import `getActiveTenantIdOrProvision` from provisioning actions
+   - Fetch tenant ID on server side
+   - Pass tenant ID to client component
+
+2. **Frontend Changes** (`apps/web/src/app/dashboard/settings/developer/client.tsx`):
+   - Added prominent Tenant ID card at top of page
+   - Styled with brand colors for visibility
+   - Includes copy button for easy copying
+   - Shows helpful description for WordPress users
+
+3. **WordPress Plugin Updates** (`packages/plugin-wordpress/trusanity-analytics.php`):
+   - Enhanced UI with clearer instructions
+   - Added step-by-step guide to find Tenant ID
+   - Better labeling and formatting
+
+4. **Documentation**:
+   - Created `TENANT_ID_GUIDE.md` with visual guide
+   - Updated `DEPLOY_NOW.md` with location instructions
+   - Added troubleshooting section
+
+### Files Modified
+- `apps/web/src/app/dashboard/settings/developer/page.tsx`
+- `apps/web/src/app/dashboard/settings/developer/client.tsx`
+- `packages/plugin-wordpress/trusanity-analytics.php`
+- `TENANT_ID_GUIDE.md` (new)
+- `DEPLOY_NOW.md`
+
+### Where Users Find Tenant ID
+Dashboard → Settings → Developer (top of page in highlighted card)
+
+---
+
+## Build Status: ✅ SUCCESS
+
+All TypeScript compilation errors resolved:
+- Fixed nullable boolean type in SDK
+- Added missing UI dependencies
+- All packages build successfully
+- Ready for production deployment

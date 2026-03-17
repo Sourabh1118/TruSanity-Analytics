@@ -20,7 +20,7 @@ type Project = {
     apiKeys: ApiKey[];
 };
 
-export default function DeveloperSettingsClient({ initialProjects }: { initialProjects: Project[] }) {
+export default function DeveloperSettingsClient({ initialProjects, tenantId }: { initialProjects: Project[], tenantId: number | null }) {
     const [projects, setProjects] = useState<Project[]>(initialProjects);
     const [isCreatingKey, setIsCreatingKey] = useState(false);
     const [newKeyName, setNewKeyName] = useState('');
@@ -84,6 +84,39 @@ export default function DeveloperSettingsClient({ initialProjects }: { initialPr
                     Generate New Key
                 </button>
             </div>
+
+            {/* Tenant ID Card - Important for WordPress Plugin */}
+            {tenantId && (
+                <div className="glass rounded-xl border border-brand-500/30 bg-brand-500/5 p-6 shadow-sm">
+                    <div className="flex items-start justify-between gap-4">
+                        <div className="flex-1">
+                            <div className="flex items-center gap-2 mb-2">
+                                <Terminal className="w-5 h-5 text-brand-500" />
+                                <h3 className="text-lg font-bold font-brand">Your Tenant ID</h3>
+                            </div>
+                            <p className="text-sm text-text-muted mb-4">
+                                Use this ID when setting up the WordPress plugin or other integrations that require tenant identification.
+                            </p>
+                            <div className="flex items-center gap-3 bg-bg-base/50 rounded-lg px-4 py-3 border border-border/50">
+                                <code className="text-2xl font-mono font-bold text-brand-500 flex-1">
+                                    {tenantId}
+                                </code>
+                                <button
+                                    onClick={() => handleCopy(tenantId.toString(), 'tenant-id')}
+                                    className="text-brand-500 hover:text-brand-400 transition-colors p-2 hover:bg-brand-500/10 rounded-lg"
+                                    title="Copy Tenant ID"
+                                >
+                                    {copiedKeyId === 'tenant-id' ? (
+                                        <CheckCircle2 className="w-5 h-5" />
+                                    ) : (
+                                        <Copy className="w-5 h-5" />
+                                    )}
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
 
             {/* Quick Start Card */}
             <QuickStartSnippet newestKey={newestKey} />

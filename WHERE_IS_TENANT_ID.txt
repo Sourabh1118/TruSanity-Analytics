@@ -1,0 +1,25 @@
+═══════════════════════════════════════════════════════════════
+  🆔 WHERE TO FIND YOUR TENANT ID - QUICK REFERENCE
+═══════════════════════════════════════════════════════════════
+
+LOCATION:
+  Dashboard → Settings → Developer
+
+WHAT YOU'LL SEE:
+  A highlighted card at the top of the page titled "Your Tenant ID"
+  with a large number and a copy button.
+
+STEP-BY-STEP:
+  1. Log in to https://your-domain.com/dashboard
+  2. Click "Settings" in the sidebar
+  3. Click "Developer" 
+  4. Look at the top - you'll see a blue/purple highlighted box
+  5. The number inside is your Tenant ID (e.g., 1, 2, 3, etc.)
+  6. Click the copy button to copy it
+
+FOR WORDPRESS PLUGIN:
+  - Paste this Tenant ID in the WordPress plugin settings
+  - Click "Create Project Automatically"
+  - Done! Your API key will be generated and saved automatically
+
+═══════════════════════════════════════════════════════════════

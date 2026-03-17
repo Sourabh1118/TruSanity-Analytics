@@ -3,7 +3,7 @@
  * Plugin Name:  Trusanity Analytics
  * Plugin URI:   https://trusanity.com
  * Description:  Privacy-first behavioral analytics. Connects your WordPress / WooCommerce site to your Trusanity workspace – auto-tracking, WooCommerce events, and a one-click setup wizard.
- * Version:      1.0.2
+ * Version:      1.0.4
  * Author:       Trusanity
  * Author URI:   https://trusanity.com
  * License:      GPL-2.0+
@@ -12,7 +12,7 @@
 
 if ( ! defined( 'ABSPATH' ) ) exit;
 
-define( 'TRUS_VERSION',  '1.0.2' );
+define( 'TRUS_VERSION',  '1.0.4' );
 define( 'TRUS_API_BASE', 'https://api.trusanity.com' );
 
 /* ─────────────────────────────────────────────────────────────────────────────
@@ -223,13 +223,21 @@ class Trusanity_Analytics {
                             <div class="trus-auto-create-icon">🚀</div>
                             <div>
                                 <h3>Quick Setup - Auto-Create Project</h3>
-                                <p>Create a new Trusanity project for <strong><?php echo esc_html( get_bloginfo( 'name' ) ); ?></strong>. You'll need your Tenant ID from the <a href="https://app.trusanity.com/dashboard" target="_blank">Trusanity dashboard</a>.</p>
+                                <p>Create a new Trusanity project for <strong><?php echo esc_html( get_bloginfo( 'name' ) ); ?></strong>.</p>
                             </div>
                         </div>
                         <div style="margin-bottom: 12px;">
+                            <label for="trus-tenant-id" style="display: block; margin-bottom: 8px; font-weight: 500;">
+                                Your Tenant ID <span style="color: #d63031;">*</span>
+                            </label>
                             <input type="number" id="trus-tenant-id" placeholder="Enter your Tenant ID (e.g., 1)" 
-                                   class="regular-text" min="1" style="margin-right: 8px;" />
-                            <p class="description">Find your Tenant ID in the Trusanity dashboard settings.</p>
+                                   class="regular-text" min="1" style="margin-bottom: 8px;" />
+                            <p class="description">
+                                📍 <strong>Where to find your Tenant ID:</strong><br>
+                                1. Log in to your <a href="https://app.trusanity.com/dashboard" target="_blank">Trusanity dashboard</a><br>
+                                2. Go to <strong>Dashboard → Settings → Developer</strong><br>
+                                3. Copy the Tenant ID shown at the top (it's a number like 1, 2, 3, etc.)
+                            </p>
                         </div>
                         <button type="button" id="trus-auto-create-btn" class="button button-primary button-hero">
                             <span class="dashicons dashicons-plus-alt" style="margin-top:4px"></span> Create Project Automatically
