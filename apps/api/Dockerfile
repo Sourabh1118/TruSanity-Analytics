@@ -23,8 +23,10 @@ COPY --from=deps /app/apps ./apps
 COPY --from=deps /app/packages ./packages
 COPY . .
 
-# Build shared db package first (may not have a build script — ignore failure)
-RUN pnpm --filter @netra/db build 2>/dev/null || true
+# Build shared packages in dependency order (leaf packages first)
+RUN pnpm --filter @trusanity/db-analytics build
+RUN pnpm --filter @trusanity/db-billing build
+RUN pnpm --filter @netra/db build
 RUN pnpm --filter @netra/api build
 
 # Use pnpm deploy to create a self-contained directory with all deps resolved
