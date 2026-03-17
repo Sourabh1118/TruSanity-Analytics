@@ -1,25 +1,48 @@
-FROM node:20-alpine
+# ── Consumer Dockerfile ───────────────────────────────────────────────────
+# Kafka → ClickHouse consumer (separate from the API process)
+# Build context: repo root (pnpm workspace)
 
+FROM node:20-alpine AS base
+RUN apk add --no-cache libc6-compat
+RUN npm install -g pnpm
+
+# ── deps: install ALL workspace packages ──────────────────────────────────
+FROM base AS deps
 WORKDIR /app
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
+COPY packages/ ./packages/
+COPY apps/api/package.json ./apps/api/package.json
+COPY apps/web/package.json ./apps/web/package.json
+RUN pnpm install --frozen-lockfile
 
-# Copy monorepo essentials
-COPY package.json pnpm-workspace.yaml ./
-COPY apps/api/package.json apps/api/
-COPY packages/db/package.json packages/db/
+# ── builder: compile TypeScript ───────────────────────────────────────────
+FROM base AS builder
+WORKDIR /app
+COPY --from=deps /app/node_modules ./node_modules
+COPY --from=deps /app/apps ./apps
+COPY --from=deps /app/packages ./packages
+COPY . .
 
-# Install pnpm
-RUN npm install -g pnpm@10.28.1
+# Build shared packages in dependency order
+RUN pnpm --filter @trusanity/db-analytics build
+RUN pnpm --filter @trusanity/db-billing build
+RUN pnpm --filter @netra/db build
+# Build just the consumer
+RUN pnpm --filter @netra/api build
 
-# Copy source
-COPY apps/api/src/consumer.ts apps/api/src/
-COPY apps/api/tsconfig.json apps/api/
+# Create a self-contained deploy directory
+RUN pnpm --filter @netra/api deploy --prod --legacy /deploy
+RUN cp -r /app/apps/api/dist /deploy/dist
 
-# Install all workspace deps
-RUN pnpm install --no-frozen-lockfile
+# ── runner ────────────────────────────────────────────────────────────────
+FROM node:20-alpine AS runner
+WORKDIR /app
+ENV NODE_ENV=production
 
-WORKDIR /app/apps/api
+RUN addgroup --system --gid 1001 nodejs && \
+    adduser  --system --uid 1001 consumer_user
 
-ENV KAFKA_BROKERS=kafka:9092
-ENV CLICKHOUSE_URL=http://clickhouse:8123
+COPY --from=builder --chown=consumer_user:nodejs /deploy ./
 
-CMD ["pnpm", "exec", "tsx", "src/consumer.ts"]
+USER consumer_user
+CMD ["node", "dist/consumer.js"]

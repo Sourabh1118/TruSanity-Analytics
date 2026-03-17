@@ -87,6 +87,20 @@ services:
       - netra-net
       - shared-trusanity-net
 
+  consumer:
+    build:
+      context: .
+      dockerfile: apps/api/Dockerfile.consumer
+    restart: always
+    environment:
+      - KAFKA_BROKERS=kafka:9092
+      - CLICKHOUSE_URL=http://clickhouse:8123
+    depends_on:
+      - kafka
+      - clickhouse
+    networks:
+      - netra-net
+
   web:
     build:
       context: .
