@@ -31,10 +31,10 @@ ENV DATABASE_URL=postgresql://placeholder:placeholder@localhost:5432/placeholder
 ENV AUTH_SECRET=build-time-placeholder-secret-not-used-at-runtime
 ENV NEXT_PUBLIC_API_URL=http://localhost:3001
 
-# Build workspace packages first (db, db-billing, db-analytics, etc.)
-RUN pnpm --filter @netra/db build
+# Build workspace packages in correct dependency order
 RUN pnpm --filter @trusanity/db-billing build
 RUN pnpm --filter @trusanity/db-analytics build
+RUN pnpm --filter @netra/db build
 
 # Then build the web app
 RUN pnpm --filter @netra/web build
